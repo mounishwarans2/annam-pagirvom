@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="ta">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Annam Pagirvom (அன்னம் பகிர்வோம்) — Food Waste Reduction Platform</title>
+  <meta name="description" content="Annam Pagirvom (அன்னம் பகிர்வோம்) - Full-Stack Mobile-First Food Waste Reduction Platform for Karur District, Tamil Nadu. GENCRAFT'26 PS14.">
+  <link rel="icon" href="static/icons/icon-192.png" type="image/png">
+  <link rel="stylesheet" href="static/css/style.css">
+  <style>
+    /* GitHub Pages showcase specific enhancements */
+    .gh-banner {
+      background: #111827;
+      color: #93c5fd;
+      padding: 0.5rem 1rem;
+      font-size: 0.85rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    .gh-banner a {
+      color: #38bdf8;
+      text-decoration: none;
+      font-weight: 600;
+    }
+    .gh-banner a:hover {
+      text-decoration: underline;
+    }
+    .tab-nav {
+      display: flex;
+      gap: 0.5rem;
+      overflow-x: auto;
+      padding: 0.75rem 0;
+      border-bottom: 2px solid var(--border-color);
+      margin-bottom: 1.5rem;
+    }
+    .tab-btn {
+      padding: 0.6rem 1.1rem;
+      border-radius: var(--radius-full);
+      border: 1px solid var(--border-color);
+      background: var(--bg-card);
+      color: var(--text-main);
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s ease;
+    }
+    .tab-btn:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+    .tab-btn.active {
+      background: var(--primary);
+      color: #ffffff;
+      border-color: var(--primary);
+      box-shadow: var(--shadow-sm);
+    }
+    .tab-pane {
+      display: none;
+    }
+    .tab-pane.active {
+      display: block;
+      animation: fadeIn 0.25s ease-in-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .camera-box {
+      border: 2px dashed var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 1.5rem;
+      text-align: center;
+      background: var(--bg-page);
+      margin-top: 0.75rem;
+    }
+    .camera-preview {
+      max-width: 100%;
+      height: 220px;
+      object-fit: cover;
+      border-radius: var(--radius-sm);
+      display: none;
+      margin: 0.5rem auto;
+      border: 2px solid var(--primary);
+    }
+    .badge-urgent {
+      background: #fee2e2;
+      color: #991b1b;
+      font-weight: 700;
+      padding: 0.2rem 0.55rem;
+      border-radius: var(--radius-full);
+      font-size: 0.75rem;
+    }
+    .badge-active {
+      background: #dbeafe;
+      color: #1e40af;
+      font-weight: 700;
+      padding: 0.2rem 0.55rem;
+      border-radius: var(--radius-full);
+      font-size: 0.75rem;
+    }
+    .badge-veg {
+      background: #dcfce7;
+      color: #166534;
+      font-weight: 700;
+      padding: 0.2rem 0.55rem;
+      border-radius: var(--radius-full);
+      font-size: 0.75rem;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top GitHub Showcase Header -->
+  <div class="gh-banner">
+    <div>
+      <span>🚀 <strong>Live Preview</strong> • Annam Pagirvom (GENCRAFT’26 Hack4Goals • PS14)</span>
+    </div>
+    <div style="display: flex; gap: 1rem; align-items: center;">
+      <a href="https://github.com/mounishwarans2/annam-pagirvom" target="_blank" rel="noopener">
+        ⭐ Star on GitHub
+      </a>
+      <a href="https://github.com/mounishwarans2/annam-pagirvom#readme" target="_blank" rel="noopener">
+        📖 Read Documentation
+      </a>
+    </div>
+  </div>
+
+  <!-- Main Application Header -->
+  <header class="app-header">
+    <div class="container header-inner">
+      <a href="#" onclick="switchTab('overview'); return false;" class="brand" style="text-decoration:none;">
+        <span class="brand-icon">🍲</span>
+        <div class="brand-text">
+          <span class="brand-title">Annam Pagirvom</span>
+          <span class="brand-sub">அன்னம் பகிர்வோம் • Karur</span>
+        </div>
+      </a>
+
+      <nav class="nav-links">
+        <a href="#overview" onclick="switchTab('overview'); return false;" class="nav-link active" data-tab-nav="overview">
+          <span data-lang-en="Overview" data-lang-ta="முகப்பு">முகப்பு</span>
+        </a>
+        <a href="#donate" onclick="switchTab('donate'); return false;" class="nav-link" data-tab-nav="donate">
+          <span data-lang-en="Donate Food" data-lang-ta="உணவு வழங்க">உணவு வழங்க</span>
+        </a>
+        <a href="#request" onclick="switchTab('request'); return false;" class="nav-link" data-tab-nav="request">
+          <span data-lang-en="Request Food" data-lang-ta="உணவு கோர">உணவு கோர</span>
+        </a>
+        <a href="#live-board" onclick="switchTab('live-board'); return false;" class="nav-link" data-tab-nav="live-board">
+          <span data-lang-en="Live Board" data-lang-ta="நேரலை பலகை">நேரலை பலகை</span>
+        </a>
+        <a href="#impact" onclick="switchTab('impact'); return false;" class="nav-link" data-tab-nav="impact">
+          <span data-lang-en="Impact" data-lang-ta="தாக்கம்">தாக்கம்</span>
+        </a>
+        <a href="#android" onclick="switchTab('android'); return false;" class="nav-link" data-tab-nav="android">
+          <span data-lang-en="Android APK" data-lang-ta="ஆண்ட்ராய்டு">ஆண்ட்ராய்டு</span>
+        </a>
+      </nav>
+
+      <div style="display: flex; align-items: center; gap: 0.75rem;">
+        <!-- Language Switcher Pill -->
+        <button id="langToggleBtn" onclick="toggleLanguage()" class="btn btn-outline" style="padding: 0.35rem 0.75rem; font-size: 0.85rem; border-radius: var(--radius-full);">
+          🌐 <strong id="langLabel">English</strong>
+        </button>
+        <a href="https://github.com/mounishwarans2/annam-pagirvom" target="_blank" rel="noopener" class="btn btn-primary" style="padding: 0.4rem 0.85rem; font-size: 0.85rem;">
+          GitHub Code
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main class="container" style="padding-top: 1.5rem; padding-bottom: 3rem; flex: 1;">
+
+    <!-- Navigation Tabs for Demo Views -->
+    <div class="tab-nav">
+      <button class="tab-btn active" onclick="switchTab('overview')" data-tab="overview">
+        🏠 <span data-lang-en="Home Overview" data-lang-ta="முகப்பு பார்வை">முகப்பு பார்வை</span>
+      </button>
+      <button class="tab-btn" onclick="switchTab('donate')" data-tab="donate">
+        🍲 <span data-lang-en="Donate Food Form" data-lang-ta="உணவு வழங்கும் படிவம்">உணவு வழங்கும் படிவம்</span>
+      </button>
+      <button class="tab-btn" onclick="switchTab('request')" data-tab="request">
+        📋 <span data-lang-en="Request Food (12 Fields)" data-lang-ta="உணவு கோரிக்கை (12 புலங்கள்)">உணவு கோரிக்கை (12 புலங்கள்)</span>
+      </button>
+      <button class="tab-btn" onclick="switchTab('live-board')" data-tab="live-board">
+        🔴 <span data-lang-en="Live Food Board" data-lang-ta="நேரலை உணவு பலகை">நேரலை உணவு பலகை</span>
+      </button>
+      <button class="tab-btn" onclick="switchTab('impact')" data-tab="impact">
+        📊 <span data-lang-en="Verified Deliveries" data-lang-ta="சரிபார்க்கப்பட்ட விநியோகம்">சரிபார்க்கப்பட்ட விநியோகம்</span>
+      </button>
+      <button class="tab-btn" onclick="switchTab('android')" data-tab="android">
+        📱 <span data-lang-en="Mobile & Capacitor APK" data-lang-ta="ஆண்ட்ராய்டு ஆப்">ஆண்ட்ராய்டு ஆப்</span>
+      </button>
+    </div>
+
+    <!-- ==================== TAB 1: OVERVIEW ==================== -->
+    <section id="tab-overview" class="tab-pane active">
+      <!-- Hero Section -->
+      <div class="hero-section" style="padding: 2.5rem 1.5rem; background: var(--bg-card); border-radius: var(--radius-lg); border: 1px solid var(--border-color); box-shadow: var(--shadow-sm); margin-bottom: 2rem;">
+        <div class="hero-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 2rem; align-items: center;">
+          <div>
+            <div class="hero-badge" style="display: inline-flex; align-items: center; gap: 0.5rem; background: var(--primary-subtle); color: var(--primary); padding: 0.35rem 0.75rem; border-radius: var(--radius-full); font-size: 0.85rem; font-weight: 700; margin-bottom: 1rem;">
+              <span>🌱</span> GENCRAFT’26 Hack4Goals • PS14 Food Waste Reduction
+            </div>
+            <h1 class="hero-title" style="font-size: 2.3rem; line-height: 1.2; margin-bottom: 1rem; color: var(--text-main);">
+              <span data-lang-en="Eliminating Surplus Food Waste" data-lang-ta="உணவு வீணாவதைத் தடுத்து">உணவு வீணாவதைத் தடுத்து</span> <br>
+              <span style="color: var(--primary);" data-lang-en="Feeding Karur District" data-lang-ta="கரூர் மக்களுக்கு உணவளிப்போம்">கரூர் மக்களுக்கு உணவளிப்போம்</span>
+            </h1>
+            <p class="hero-subtitle" style="font-size: 1.05rem; color: var(--text-muted); margin-bottom: 1.5rem; line-height: 1.6;" data-lang-en="Connecting hotels, marriage halls, and caterers with registered shelters, destitute homes, and verified volunteer drivers across Karur District, Tamil Nadu." data-lang-ta="ஹோட்டல்கள், திருமண மண்டபங்கள் மற்றும் கேட்டரிங் ஆகியவற்றிலிருந்து மீதமாகும் உணவை கரூரில் உள்ள பதிவுசெய்யப்பட்ட ஆதரவற்றோர் இல்லங்கள் மற்றும் தன்னார்வலர்களுடன் இணைக்கிறோம்.">
+              ஹோட்டல்கள், திருமண மண்டபங்கள் மற்றும் கேட்டரிங் ஆகியவற்றிலிருந்து மீதமாகும் உணவை கரூரில் உள்ள பதிவுசெய்யப்பட்ட ஆதரவற்றோர் இல்லங்கள் மற்றும் தன்னார்வலர்களுடன் இணைக்கிறோம்.
+            </p>
+            <div class="hero-actions" style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+              <button onclick="switchTab('donate')" class="btn btn-primary" style="padding: 0.75rem 1.5rem; font-size: 1rem;">
+                🍲 <span data-lang-en="Donate Food Now" data-lang-ta="உணவு வழங்குக">உணவு வழங்குக</span>
+              </button>
+              <button onclick="switchTab('request')" class="btn btn-accent" style="padding: 0.75rem 1.5rem; font-size: 1rem;">
+                📋 <span data-lang-en="Request Food" data-lang-ta="உணவு கோரிக்கை">உணவு கோரிக்கை</span>
+              </button>
+              <button onclick="switchTab('live-board')" class="btn btn-outline" style="padding: 0.75rem 1.25rem;">
+                🔴 <span data-lang-en="View Live Board" data-lang-ta="நேரலை பலகை">நேரலை பலகை</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Impact Metrics Card -->
+          <div class="hero-card" style="background: var(--bg-page); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.5rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+              <span style="font-weight: 700; font-size: 1rem; color: var(--text-main);">📊 <span data-lang-en="Impact at a Glance" data-lang-ta="ஒரு பார்வையில் தாக்கம்">ஒரு பார்வையில் தாக்கம்</span></span>
+              <span class="badge-active" data-lang-en="Karur District" data-lang-ta="கரூர் மாவட்டம்">கரூர் மாவட்டம்</span>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+              <div style="background: #ffffff; padding: 1rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); text-align: center;">
+                <div style="font-size: 1.8rem; font-weight: 800; color: var(--primary);">1,420</div>
+                <div style="font-size: 0.8rem; color: var(--text-muted);" data-lang-en="Meals Delivered" data-lang-ta="வழங்கப்பட்ட உணவுகள்">வழங்கப்பட்ட உணவுகள்</div>
+              </div>
+              <div style="background: #ffffff; padding: 1rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); text-align: center;">
+                <div style="font-size: 1.8rem; font-weight: 800; color: var(--accent);">48</div>
+                <div style="font-size: 0.8rem; color: var(--text-muted);" data-lang-en="Completed Handovers" data-lang-ta="வெற்றிகரமான விநியோகங்கள்">வெற்றிகரமான விநியோகங்கள்</div>
+              </div>
+              <div style="background: #ffffff; padding: 1rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); text-align: center;">
+                <div style="font-size: 1.8rem; font-weight: 800; color: #2563eb;">12</div>
+                <div style="font-size: 0.8rem; color: var(--text-muted);" data-lang-en="Active Batches" data-lang-ta="நேரலை உணவுகள்">நேரலை உணவுகள்</div>
+              </div>
+              <div style="background: #ffffff; padding: 1rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); text-align: center;">
+                <div style="font-size: 1.8rem; font-weight: 800; color: #7c3aed;">34</div>
+                <div style="font-size: 0.8rem; color: var(--text-muted);" data-lang-en="Partner Shelters" data-lang-ta="இணைந்த இல்லங்கள்">இணைந்த இல்லங்கள்</div>
+              </div>
+            </div>
+
+            <div style="padding: 0.75rem; background: #fef3c7; border-left: 4px solid #f59e0b; border-radius: 4px; font-size: 0.85rem; color: #92400e;">
+              <strong>🚨 <span data-lang-en="Emergency Helpline:" data-lang-ta="அவசர உதவி எண்:">அவசர உதவி எண்:</span></strong>
+              <a href="tel:04324222333" style="color: #92400e; font-weight: 700; text-decoration: underline;">04324-222333</a> / 
+              <a href="tel:18004251333" style="color: #92400e; font-weight: 700; text-decoration: underline;">1800-425-1333</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Human Safety Charter -->
+      <div style="background: var(--bg-card); border-left: 4px solid var(--primary); padding: 1.25rem; border-radius: var(--radius-sm); box-shadow: var(--shadow-sm); margin-bottom: 2rem;">
+        <h3 style="font-size: 1.1rem; color: var(--primary); margin-bottom: 0.5rem;">
+          🛡️ <span data-lang-en="Human-Verified Food Safety Protocol" data-lang-ta="மனிதனால் சரிபார்க்கப்படும் உணவு பாதுகாப்பு நெறிமுறை">மனிதனால் சரிபார்க்கப்படும் உணவு பாதுகாப்பு நெறிமுறை</span>
+        </h3>
+        <p style="font-size: 0.9rem; color: var(--text-muted); line-height: 1.5;" data-lang-en="Annam Pagirvom strictly upholds that digital timestamps and photos provide transparency, but food safety must be physically inspected by responsible donors, drivers, and shelters before consumption." data-lang-ta="டிஜிட்டல் நேரமும் புகைப்படங்களும் வெளிப்படைத்தன்மையை அளிக்கின்றன; ஆனால் நுகர்வுக்கு முன் பொறுப்பான நன்கொடையாளர், ஓட்டுநர் மற்றும் இல்ல நிர்வாகிகளால் உணவு தரம் நேரடியாக சரிபார்க்கப்பட வேண்டும்.">
+          டிஜிட்டல் நேரமும் புகைப்படங்களும் வெளிப்படைத்தன்மையை அளிக்கின்றன; ஆனால் நுகர்வுக்கு முன் பொறுப்பான நன்கொடையாளர், ஓட்டுநர் மற்றும் இல்ல நிர்வாகிகளால் உணவு தரம் நேரடியாக சரிபார்க்கப்பட வேண்டும்.
+        </p>
+      </div>
+
+      <!-- Karur Areas Covered -->
+      <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.5rem;">
+        <h3 style="font-size: 1.1rem; margin-bottom: 1rem; color: var(--text-main);">
+          📍 <span data-lang-en="Active Coverage Zones in Karur District" data-lang-ta="கரூர் மாவட்ட சேவை பகுதிகள்">கரூர் மாவட்ட சேவை பகுதிகள்</span>
+        </h3>
+        <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+          <span style="background: var(--primary-subtle); color: var(--primary); padding: 0.35rem 0.75rem; border-radius: var(--radius-full); font-size: 0.85rem; font-weight: 600;">கரூர் நகரம் (Karur Town)</span>
+          <span style="background: var(--primary-subtle); color: var(--primary); padding: 0.35rem 0.75rem; border-radius: var(--radius-full); font-size: 0.85rem; font-weight: 600;">தாந்தோணிமலை (Thanthonimalai)</span>
+          <span style="background: var(--primary-subtle); color: var(--primary); padding: 0.35rem 0.75rem; border-radius: var(--radius-full); font-size: 0.85rem; font-weight: 600;">வெங்கமேடு (Vengamedu)</span>
+          <span style="background: var(--primary-subtle); color: var(--primary); padding: 0.35rem 0.75rem; border-radius: var(--radius-full); font-size: 0.85rem; font-weight: 600;">இனாம் கரூர் (Inam Karur)</span>
+          <span style="background: var(--primary-subtle); color: var(--primary); padding: 0.35rem 0.75rem; border-radius: var(--radius-full); font-size: 0.85rem; font-weight: 600;">காந்தி கிராமம் (Gandhigramam)</span>
+          <span style="background: var(--primary-subtle); color: var(--primary); padding: 0.35rem 0.75rem; border-radius: var(--radius-full); font-size: 0.85rem; font-weight: 600;">பசுபதிபாளையம் (Pasupathipalayam)</span>
+          <span style="background: var(--primary-subtle); color: var(--primary); padding: 0.35rem 0.75rem; border-radius: var(--radius-full); font-size: 0.85rem; font-weight: 600;">புலியூர் (Puliyur)</span>
+          <span style="background: var(--primary-subtle); color: var(--primary); padding: 0.35rem 0.75rem; border-radius: var(--radius-full); font-size: 0.85rem; font-weight: 600;">குளித்தலை (Kulithalai)</span>
+          <span style="background: var(--primary-subtle); color: var(--primary); padding: 0.35rem 0.75rem; border-radius: var(--radius-full); font-size: 0.85rem; font-weight: 600;">அரவக்குறிச்சி (Aravakurichi)</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 2: DONATE FOOD FORM ==================== -->
+    <section id="tab-donate" class="tab-pane">
+      <div style="max-width: 800px; margin: 0 auto; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 2rem; box-shadow: var(--shadow-sm);">
+        <h2 style="font-size: 1.6rem; color: var(--text-main); margin-bottom: 0.5rem;">
+          🍲 <span data-lang-en="Post Food Donation" data-lang-ta="உணவு நன்கொடை பதிவு செய்க">உணவு நன்கொடை பதிவு செய்க</span>
+        </h2>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;" data-lang-en="Share surplus wholesome food with nearby shelters across Karur." data-lang-ta="மீதமுள்ள தரமான உணவை கரூரில் உள்ள அருகிலுள்ள ஆதரவற்றோர் இல்லங்களுடன் பகிர்ந்து கொள்ளுங்கள்.">
+          மீதமுள்ள தரமான உணவை கரூரில் உள்ள அருகிலுள்ள ஆதரவற்றோர் இல்லங்களுடன் பகிர்ந்து கொள்ளுங்கள்.
+        </p>
+
+        <form id="donationForm" onsubmit="handleDonationSubmit(event)">
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+            <div>
+              <label style="display:block; font-weight:600; font-size:0.9rem; margin-bottom:0.35rem;">
+                <span data-lang-en="Donor / Org Name *" data-lang-ta="நன்கொடையாளர் / அமைப்பு பெயர் *">நன்கொடையாளர் / அமைப்பு பெயர் *</span>
+              </label>
+              <input type="text" id="donorName" required placeholder="e.g. Karur Saravana Bhavan" style="width:100%; padding:0.65rem; border:1px solid var(--border-color); border-radius:var(--radius-sm); font-size:0.9rem;">
+            </div>
+
+            <div>
+              <label style="display:block; font-weight:600; font-size:0.9rem; margin-bottom:0.35rem;">
+                <span data-lang-en="Organization Type *" data-lang-ta="அமைப்பு வகை *">அமைப்பு வகை *</span>
+              </label>
+              <select id="donorType" required style="width:100%; padding:0.65rem; border:1px solid var(--border-color); border-radius:var(--radius-sm); font-size:0.9rem; background:#fff;">
+                <option value="Restaurant">உணவகம் (Restaurant)</option>
+                <option value="Marriage Hall">திருமண மண்டபம் (Marriage Hall)</option>
+                <option value="College Canteen">கல்லூரி கேண்டீன் (College Mess/Canteen)</option>
+                <option value="Event Organizer">நிகழ்ச்சி ஏற்பாட்டாளர் (Event/Caterer)</option>
+                <option value="Individual">தனிநபர் இல்லம் (Household)</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+            <div>
+              <label style="display:block; font-weight:600; font-size:0.9rem; margin-bottom:0.35rem;">
+                <span data-lang-en="Food Category *" data-lang-ta="உணவு வகை *">உணவு வகை *</span>
+              </label>
+              <select id="donorCategory" required style="width:100%; padding:0.65rem; border:1px solid var(--border-color); border-radius:var(--radius-sm); font-size:0.9rem; background:#fff;">
+                <option value="Cooked Meals (சைவம் / Veg)">சமைத்த உணவு - சைவம் (Cooked Veg Meals)</option>
+                <option value="Cooked Meals (அசைவம் / Non-Veg)">சமைத்த உணவு - அசைவம் (Cooked Non-Veg Meals)</option>
+                <option value="Bakery & Snacks">ரொட்டி & தின்பண்டங்கள் (Bakery & Snacks)</option>
+                <option value="Raw Groceries">மளிகைப் பொருட்கள் (Raw Groceries & Rice)</option>
+                <option value="Fruits & Vegetables">பழங்கள் மற்றும் காய்கறிகள் (Fruits & Veggies)</option>
+              </select>
+            </div>
+
+            <div>
+              <label style="display:block; font-weight:600; font-size:0.9rem; margin-bottom:0.35rem;">
+                <span data-lang-en="Portions / Quantity *" data-lang-ta="அளவு / நபர்களின் எண்ணிக்கை *">அளவு / நபர்களின் எண்ணிக்கை *</span>
+              </label>
+              <input type="number" id="donorQuantity" required min="5" max="5000" placeholder="e.g. 50" style="width:100%; padding:0.65rem; border:1px solid var(--border-color); border-radius:var(--radius-sm); font-size:0.9rem;">
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+            <div>
+              <label style="display:block; font-weight:600; font-size:0.9rem; margin-bottom:0.35rem;">
+                <span data-lang-en="Pickup Area in Karur *" data-lang-ta="பிக்கப் பகுதி (கரூர்) *">பிக்கப் பகுதி (கரூர்) *</span>
+              </label>
+              <select id="donorArea" required style="width:100%; padding:0.65rem; border:1px solid var(--border-color); border-radius:var(--radius-sm); font-size:0.9rem; background:#fff;">
+                <option value="Karur Town">கரூர் நகரம் (Karur Town)</option>
+                <option value="Thanthonimalai">தாந்தோணிமலை (Thanthonimalai)</option>
+                <option value="Vengamedu">வெங்கமேடு (Vengamedu)</option>
+                <option value="Inam Karur">இனாம் கரூர் (Inam Karur)</option>
+                <option value="Gandhigramam">காந்தி கிராமம் (Gandhigramam)</option>
+                <option value="Pasupathipalayam">பசுபதிபாளையம் (Pasupathipalayam)</option>
+                <option value="Puliyur">புலியூர் (Puliyur)</option>
+                <option value="Kulithalai">குளித்தலை (Kulithalai)</option>
+              </select>
+            </div>
+
+            <div>
+              <label style="display:block; font-weight:600; font-size:0.9rem; margin-bottom:0.35rem;">
+                <span data-lang-en="Safe-Use Deadline (Hours) *" data-lang-ta="பாதுகாப்பான காலக்கெடு (மணிகள்) *">பாதுகாப்பான காலக்கெடு (மணிகள்) *</span>
+              </label>
+              <select id="donorDeadline" required style="width:100%; padding:0.65rem; border:1px solid var(--border-color); border-radius:var(--radius-sm); font-size:0.9rem; background:#fff;">
+                <option value="2">2 மணி நேரத்திற்குள் (உடனடி தேவை)</option>
+                <option value="4" selected>4 மணி நேரத்திற்குள் (பரிந்துரைக்கப்படுகிறது)</option>
+                <option value="6">6 மணி நேரத்திற்குள்</option>
+                <option value="12">12 மணி நேரத்திற்குள் (குளிர்ந்த சேமிப்பு)</option>
+                <option value="24">24 மணி நேரத்திற்குள் (மளிகை / பேக்கரி)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Camera Verification Simulator -->
+          <div style="margin-bottom: 1.5rem;">
+            <label style="display:block; font-weight:600; font-size:0.9rem; margin-bottom:0.35rem;">
+              📸 <span data-lang-en="Food Container Verification Photo" data-lang-ta="உணவு பாத்திர சரிபார்ப்பு புகைப்படம்">உணவு பாத்திர சரிபார்ப்பு புகைப்படம்</span>
+            </label>
+            <div class="camera-box">
+              <img id="foodPhotoPreview" class="camera-preview" src="static/uploads/demo_veg_rice.jpg" alt="Preview" style="display:block;">
+              <p id="cameraNote" style="font-size:0.85rem; color:var(--text-muted); margin-bottom:0.5rem;" data-lang-en="Live camera container preview enabled." data-lang-ta="நேரலை கேமரா மூலம் பாத்திரங்களை சரிபார்க்கவும்.">
+                நேரலை கேமரா மூலம் பாத்திரங்களை சரிபார்க்கவும்.
+              </p>
+              <div style="display:flex; justify-content:center; gap:0.5rem; flex-wrap:wrap;">
+                <button type="button" onclick="startCameraSim()" class="btn btn-outline" style="font-size:0.85rem; padding:0.4rem 0.8rem;">
+                  📷 <span data-lang-en="Open Camera" data-lang-ta="கேமரா திறக்கவும்">கேமரா திறக்கவும்</span>
+                </button>
+                <label class="btn btn-outline" style="font-size:0.85rem; padding:0.4rem 0.8rem; cursor:pointer;">
+                  📁 <span data-lang-en="Choose File" data-lang-ta="கோப்பைத் தேர்ந்தெடுக்கவும்">கோப்பைத் தேர்ந்தெடுக்கவும்</span>
+                  <input type="file" accept="image/*" style="display:none;" onchange="handleFileSelect(event)">
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- GPS Location -->
+          <div style="margin-bottom: 1.5rem; background: var(--bg-page); padding: 1rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <strong style="font-size:0.85rem; color:var(--text-main);">📍 GPS Coordinates (Karur):</strong>
+              <div id="gpsCoords" style="font-size:0.8rem; color:var(--text-muted);">10.9601° N, 78.0766° E (Auto-detected)</div>
+            </div>
+            <button type="button" onclick="getLiveGps()" class="btn btn-outline" style="font-size:0.8rem; padding:0.3rem 0.7rem;">
+              🔄 Refresh GPS
+            </button>
+          </div>
+
+          <!-- Mandatory Safety Declaration -->
+          <div style="margin-bottom: 1.5rem;">
+            <label style="display:flex; align-items:flex-start; gap:0.6rem; cursor:pointer; font-size:0.85rem; color:var(--text-main);">
+              <input type="checkbox" required style="margin-top:0.2rem;">
+              <span>
+                <strong><span data-lang-en="Mandatory Safety Declaration:" data-lang-ta="கட்டாய பாதுகாப்பு உறுதிமொழி:">கட்டாய பாதுகாப்பு உறுதிமொழி:</span></strong>
+                <span data-lang-en="I certify that this food was prepared hygienically, stored at safe temperatures, and is unadulterated." data-lang-ta="இந்த உணவு சுகாதாரமான முறையில் தயாரிக்கப்பட்டு, பாதுகாப்பான வெப்பநிலையில் சேமிக்கப்பட்டுள்ளது என சான்றளிக்கிறேன்.">இந்த உணவு சுகாதாரமான முறையில் தயாரிக்கப்பட்டு, பாதுகாப்பான வெப்பநிலையில் சேமிக்கப்பட்டுள்ளது என சான்றளிக்கிறேன்.</span>
+              </span>
+            </label>
+          </div>
+
+          <button type="submit" class="btn btn-primary" style="width: 100%; padding: 0.85rem; font-size: 1.05rem; font-weight: 700;">
+            ✓ <span data-lang-en="Submit Donation to Karur Network" data-lang-ta="நன்கொடையை பதிவு செய்க">நன்கொடையை பதிவு செய்க</span>
+          </button>
+        </form>
+
+        <div id="donateSuccessMsg" style="display:none; margin-top:1.5rem; padding:1rem; background:#dcfce7; border-left:4px solid #16a34a; border-radius:4px; color:#14532d;">
+          🎉 <strong>நன்றி! உங்கள் உணவு நன்கொடை பதிவு செய்யப்பட்டது.</strong><br>
+          <span style="font-size:0.85rem;">நேரலை பலகையில் சேர்க்கப்பட்டது மற்றும் அருகிலுள்ள கரூரின் தன்னார்வலர்களுக்கு அறிவிப்பு அனுப்பப்பட்டது.</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 3: REQUEST FOOD (12 FIELDS) ==================== -->
+    <section id="tab-request" class="tab-pane">
+      <div style="max-width: 800px; margin: 0 auto; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 2rem; box-shadow: var(--shadow-sm);">
+        <h2 style="font-size: 1.6rem; color: var(--text-main); margin-bottom: 0.5rem;">
+          📋 <span data-lang-en="Request Food (Registered Shelter / Trust)" data-lang-ta="உணவு கோரிக்கை படிவம் (12 புலங்கள்)">உணவு கோரிக்கை படிவம் (12 புலங்கள்)</span>
+        </h2>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;" data-lang-en="Shelters and community trusts can request nutritious surplus food across Karur." data-lang-ta="ஆதரவற்றோர் இல்லங்கள், முதியோர் இல்லங்கள் மற்றும் சமூக அமைப்புகள் உணவு கோரலாம்.">
+          ஆதரவற்றோர் இல்லங்கள், முதியோர் இல்லங்கள் மற்றும் சமூக அமைப்புகள் உணவு கோரலாம்.
+        </p>
+
+        <!-- Emergency Banner -->
+        <div style="margin-bottom: 1.5rem; padding: 1rem; background: #fee2e2; border-left: 4px solid #dc2626; border-radius: 4px; color: #7f1d1d; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+          <div>
+            <strong>🚨 அவசர உணவு தேவையுள்ளதா?</strong><br>
+            <span style="font-size:0.85rem;">2 மணி நேரத்திற்குள் உணவு பெற எங்களின் நேரடி அவசர உதவி எண்ணை அழைக்கவும்:</span>
+          </div>
+          <a href="tel:+918098016330" class="btn btn-accent" style="padding: 0.45rem 1rem; font-size: 0.9rem;">
+            📞 +91 8098016330
+          </a>
+        </div>
+
+        <form id="requestForm" onsubmit="handleRequestSubmit(event)">
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+            <div>
+              <label style="display:block; font-weight:600; font-size:0.9rem; margin-bottom:0.35rem;">
+                1. <span data-lang-en="Organization Name *" data-lang-ta="அமைப்பு / இல்லத்தின் பெயர் *">அமைப்பு / இல்லத்தின் பெயர் *</span>
+              </label>
+              <input type="text" id="reqOrg" required placeholder="e.g. Karur Anbu Illam Trust" style="width:100%; padding:0.65rem; border:1px solid var(--border-color); border-radius:var(--radius-sm); font-size:0.9rem;">
+            </div>
+
+            <div>
+              <label style="display:block; font-weight:600; font-size:0.9rem; margin-bottom:0.35rem;">
+                2. <span data-lang-en="Organization Type *" data-lang-ta="அமைப்பு வகை *">அமைப்பு வகை *</span>
+              </label>
+              <select id="reqType" required style="width:100%; padding:0.65rem; border:1px solid var(--border-color); border-radius:var(--radius-sm); font-size:0.9rem; background:#fff;">
+                <option value="Children's Home">குழந்தைகள் காப்பகம் (Children's Home)</option>
+                <option value="Old Age Home">முதியோர் இல்லம் (Old Age Home)</option>
+                <option value="Destitute Shelter">ஆதரவற்றோர் இல்லம் (Destitute Shelter)</option>
+                <option value="Community Kitchen">சமூக சமையலறை (Community Kitchen)</option>
+                <option value="Slum Outreach">குடிசை பகுதி சேவை (Slum Outreach)</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+            <div>
+              <label style="display:block; font-weight:600; font-size:0.9rem; margin-bottom:0.35rem;">
+                3. <span data-lang-en="Contact Person *" data-lang-ta="தொடர்பு நபர் பெயர் *">தொடர்பு நபர் பெயர் *</span>
+              </label>
+              <input type="text" id="reqContact" required placeholder="e.g. S. Ramanathan" style="width:100%; padding:0.65rem; border:1px solid var(--border-color); border-radius:var(--radius-sm); font-size:0.9rem;">
+            </div>
+
+            <div>
+              <label style="display:block; font-weight:600; font-size:0.9rem; margin-bottom:0.35rem;">
+                4. <span data-lang-en="Phone Number (10 Digits) *" data-lang-ta="தொலைபேசி எண் (10 இலக்கம்) *">தொலைபேசி எண் (10 இலக்கம்) *</span>
+              </label>
+              <input type="tel" id="reqPhone" required pattern="[0-9]{10}" placeholder="e.g. 9876543210" style="width:100%; padding:0.65rem; border:1px solid var(--border-color); border-radius:var(--radius-sm); font-size:0.9rem;">
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+            <div>
+              <label style="display:block; font-weight:600; font-size:0.9rem; margin-bottom:0.35rem;">
+                5. <span data-lang-en="Email (Optional)" data-lang-ta="மின்னஞ்சல் (விருப்பத்தேர்வு)">மின்னஞ்சல் (விருப்பத்தேர்வு)</span>
+              </label>
+              <input type="email" id="reqEmail" placeholder="contact@karuranbu.org" style="width:100%; padding:0.65rem; border:1px solid var(--border-color); border-radius:var(--radius-sm); font-size:0.9rem;">
+            </div>
+
+            <div>
+              <label style="display:block; font-weight:600; font-size:0.9rem; margin-bottom:0.35rem;">
+                6. <span data-lang-en="Delivery Area (Karur) *" data-lang-ta="விநியோக பகுதி (கரூர்) *">விநியோக பகுதி (கரூர்) *</span>
+              </label>
+              <select id="reqArea" required style="width:100%; padding:0.65rem; border:1px solid var(--border-color); border-radius:var(--radius-sm); font-size:0.9rem; background:#fff;">
+                <option value="Karur Town">கரூர் நகரம் (Karur Town)</option>
+                <option value="Thanthonimalai">தாந்தோணிமலை (Thanthonimalai)</option>
+                <option value="Vengamedu">வெங்கமேடு (Vengamedu)</option>
+                <option value="Inam Karur">இனாம் கரூர் (Inam Karur)</option>
+                <option value="Gandhigramam">காந்தி கிராமம் (Gandhigramam)</option>
+                <option value="Pasupathipalayam">பசுபதிபாளையம் (Pasupathipalayam)</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="margin-bottom: 1rem;">
+            <label style="display:block; font-weight:600; font-size:0.9rem; margin-bottom:0.35rem;">
+              7. <span data-lang-en="Complete Delivery Address *" data-lang-ta="முழுமையான முகவரி *">முழுமையான முகவரி *</span>
+            </label>
+            <textarea id="reqAddress" required rows="2" placeholder="Door No, Street Name, Landmark, Karur" style="width:100%; padding:0.65rem; border:1px solid var(--border-color); border-radius:var(--radius-sm); font-size:0.9rem;"></textarea>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+            <div>
+              <label style="display:block; font-weight:600; font-size:0.9rem; margin-bottom:0.35rem;">
+                8. <span data-lang-en="Number of People (Portions) *" data-lang-ta="நபர்களின் எண்ணிக்கை (அளவு) *">நபர்களின் எண்ணிக்கை (அளவு) *</span>
+              </label>
+              <input type="number" id="reqPortions" required min="5" max="3000" placeholder="e.g. 45" style="width:100%; padding:0.65rem; border:1px solid var(--border-color); border-radius:var(--radius-sm); font-size:0.9rem;">
+            </div>
+
+            <div>
+              <label style="display:block; font-weight:600; font-size:0.9rem; margin-bottom:0.35rem;">
+                9. <span data-lang-en="Urgency Level *" data-lang-ta="அவசர நிலை *">அவசர நிலை *</span>
+              </label>
+              <select id="reqUrgency" required style="width:100%; padding:0.65rem; border:1px solid var(--border-color); border-radius:var(--radius-sm); font-size:0.9rem; background:#fff;">
+                <option value="🚨 Emergency">🚨 மிக அவசரம் (Emergency - immediate meal)</option>
+                <option value="⚡ Urgent Today" selected>⚡ இன்றே தேவை (Urgent today)</option>
+                <option value="🟢 Normal Need">🟢 வழக்கமான தேவை (Normal schedule)</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+            <div>
+              <label style="display:block; font-weight:600; font-size:0.9rem; margin-bottom:0.35rem;">
+                10. <span data-lang-en="Preferred Time *" data-lang-ta="விருப்பமான நேரம் *">விருப்பமான நேரம் *</span>
+              </label>
+              <select id="reqTiming" required style="width:100%; padding:0.65rem; border:1px solid var(--border-color); border-radius:var(--radius-sm); font-size:0.9rem; background:#fff;">
+                <option value="உடனடியாக (ASAP)">உடனடியாக (ASAP)</option>
+                <option value="மதிய உணவு (Lunch)">மதிய உணவு (Lunch: 12:00 PM - 2:00 PM)</option>
+                <option value="இரவு உணவு (Dinner)">இரவு உணவு (Dinner: 7:00 PM - 9:00 PM)</option>
+                <option value="எந்த நேரமும் (Flexible)">எந்த நேரமும் (Flexible)</option>
+              </select>
+            </div>
+
+            <div>
+              <label style="display:block; font-weight:600; font-size:0.9rem; margin-bottom:0.35rem;">
+                11. <span data-lang-en="Dietary Restrictions" data-lang-ta="உணவு கட்டுப்பாடு">உணவு கட்டுப்பாடு</span>
+              </label>
+              <select id="reqDiet" style="width:100%; padding:0.65rem; border:1px solid var(--border-color); border-radius:var(--radius-sm); font-size:0.9rem; background:#fff;">
+                <option value="சைவம் மட்டும் (Pure Veg)">சைவம் மட்டும் (Pure Veg)</option>
+                <option value="அனைத்து உணவு (Any Wholesome Food)">அனைத்து உணவு (Any Wholesome Food)</option>
+                <option value="குழந்தைகளுக்கான உணவு (Mild)">குழந்தைகளுக்கான காரம் குறைவான உணவு</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="margin-bottom: 1.5rem;">
+            <label style="display:block; font-weight:600; font-size:0.9rem; margin-bottom:0.35rem;">
+              12. <span data-lang-en="Additional Requirements / Notes" data-lang-ta="கூடுதல் விவரங்கள்">கூடுதல் விவரங்கள்</span>
+            </label>
+            <input type="text" id="reqNotes" placeholder="பாத்திரங்கள் கொண்டு வரவும் / பாக்கெட் உணவு சிறந்தது" style="width:100%; padding:0.65rem; border:1px solid var(--border-color); border-radius:var(--radius-sm); font-size:0.9rem;">
+          </div>
+
+          <button type="submit" class="btn btn-accent" style="width:100%; padding:0.85rem; font-size:1.05rem; font-weight:700;">
+            ✓ <span data-lang-en="Submit Food Request" data-lang-ta="உணவு கோரிக்கையை சமர்ப்பிக்கவும்">உணவு கோரிக்கையை சமர்ப்பிக்கவும்</span>
+          </button>
+        </form>
+
+        <div id="requestSuccessMsg" style="display:none; margin-top:1.5rem; padding:1rem; background:#dcfce7; border-left:4px solid #16a34a; border-radius:4px; color:#14532d;">
+          🎉 <strong>உங்கள் கோரிக்கை வெற்றிகரமாகப் பதிவு செய்யப்பட்டது!</strong><br>
+          <span style="font-size:0.85rem;">விதிமுறை அடிப்படையிலான பொருத்தம் (Rule-Based Matching Engine) மூலம் அருகில் உள்ள உணவு நன்கொடையாளர்களுடன் இணைக்கப்பட்டு தன்னார்வலருக்கு தகவல் அனுப்பப்பட்டுள்ளது.</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 4: LIVE FOOD BOARD ==================== -->
+    <section id="tab-live-board" class="tab-pane">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; margin-bottom:1.5rem;">
+        <div>
+          <h2 style="font-size:1.6rem; color:var(--text-main); margin-bottom:0.25rem;">
+            🔴 <span data-lang-en="Live Surplus Food Board" data-lang-ta="நேரலை உணவு பகிர்வு பலகை">நேரலை உணவு பகிர்வு பலகை</span>
+          </h2>
+          <p style="color:var(--text-muted); font-size:0.9rem;" data-lang-en="Real-time verified food batches available for pickup in Karur District." data-lang-ta="கரூர் மாவட்டத்தில் உடனடியாக கிடைக்கக்கூடிய சரிபார்க்கப்பட்ட உணவுத் தொகுப்புகள்.">
+            கரூர் மாவட்டத்தில் உடனடியாக கிடைக்கக்கூடிய சரிபார்க்கப்பட்ட உணவுத் தொகுப்புகள்.
+          </p>
+        </div>
+
+        <div style="display:flex; gap:0.5rem; align-items:center;">
+          <input type="text" id="boardSearch" oninput="filterBoard()" placeholder="🔍 Search area or food..." style="padding:0.5rem 0.85rem; border:1px solid var(--border-color); border-radius:var(--radius-full); font-size:0.85rem;">
+          <button onclick="switchTab('donate')" class="btn btn-primary" style="padding:0.5rem 1rem; font-size:0.85rem;">
+            + <span data-lang-en="Post Food" data-lang-ta="உணவு சேர்க்க">உணவு சேர்க்க</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Food Batch Grid -->
+      <div id="foodGrid" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(320px, 1fr)); gap:1.25rem;">
+        <!-- Card 1 -->
+        <div class="food-card" style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:var(--radius-md); overflow:hidden; box-shadow:var(--shadow-sm);">
+          <img src="static/uploads/demo_veg_rice.jpg" alt="Meals" style="width:100%; height:180px; object-fit:cover;">
+          <div style="padding:1.25rem;">
+            <div style="display:flex; justify-content:space-between; margin-bottom:0.5rem;">
+              <span class="badge-veg">Cooked Veg Meals</span>
+              <span class="badge-urgent">⏳ 3h 15m remaining</span>
+            </div>
+            <h3 style="font-size:1.2rem; margin-bottom:0.35rem; color:var(--text-main);">75 Portions Sambar Sadham & Poriyal</h3>
+            <div style="font-size:0.85rem; color:var(--text-muted); margin-bottom:0.75rem;">
+              🏨 <strong>Karur Grand Marriage Mahal</strong> • Thanthonimalai, Karur
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.85rem; border-top:1px solid var(--border-color); padding-top:0.75rem;">
+              <span>📍 1.8 km away</span>
+              <button onclick="claimFood(this, '75 Portions Sambar Sadham')" class="btn btn-primary" style="padding:0.35rem 0.85rem; font-size:0.85rem;">
+                Claim Batch
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 2 -->
+        <div class="food-card" style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:var(--radius-md); overflow:hidden; box-shadow:var(--shadow-sm);">
+          <img src="static/uploads/demo_idli_sambar.jpg" alt="Idli" style="width:100%; height:180px; object-fit:cover;">
+          <div style="padding:1.25rem;">
+            <div style="display:flex; justify-content:space-between; margin-bottom:0.5rem;">
+              <span class="badge-veg">Breakfast / Snacks</span>
+              <span class="badge-active">⏳ 4h 45m remaining</span>
+            </div>
+            <h3 style="font-size:1.2rem; margin-bottom:0.35rem; color:var(--text-main);">120 Steamed Idlis & Chutney</h3>
+            <div style="font-size:0.85rem; color:var(--text-muted); margin-bottom:0.75rem;">
+              ☕ <strong>Apsara Bhavan Canteen</strong> • Karur Town Central
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.85rem; border-top:1px solid var(--border-color); padding-top:0.75rem;">
+              <span>📍 0.9 km away</span>
+              <button onclick="claimFood(this, '120 Steamed Idlis')" class="btn btn-primary" style="padding:0.35rem 0.85rem; font-size:0.85rem;">
+                Claim Batch
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 3 -->
+        <div class="food-card" style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:var(--radius-md); overflow:hidden; box-shadow:var(--shadow-sm);">
+          <img src="static/uploads/demo_veg_rice.jpg" alt="Variety Rice" style="width:100%; height:180px; object-fit:cover;">
+          <div style="padding:1.25rem;">
+            <div style="display:flex; justify-content:space-between; margin-bottom:0.5rem;">
+              <span class="badge-veg">Variety Rice</span>
+              <span class="badge-active">⏳ 5h 30m remaining</span>
+            </div>
+            <h3 style="font-size:1.2rem; margin-bottom:0.35rem; color:var(--text-main);">50 Portions Lemon & Curd Rice</h3>
+            <div style="font-size:0.85rem; color:var(--text-muted); margin-bottom:0.75rem;">
+              🍛 <strong>Sri Krishna Caterers</strong> • Vengamedu, Karur
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.85rem; border-top:1px solid var(--border-color); padding-top:0.75rem;">
+              <span>📍 2.4 km away</span>
+              <button onclick="claimFood(this, '50 Portions Lemon & Curd Rice')" class="btn btn-primary" style="padding:0.35rem 0.85rem; font-size:0.85rem;">
+                Claim Batch
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 5: IMPACT LEDGER ==================== -->
+    <section id="impact" class="tab-pane">
+      <div style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:var(--radius-lg); padding:2rem; box-shadow:var(--shadow-sm); margin-bottom:2rem;">
+        <h2 style="font-size:1.6rem; color:var(--text-main); margin-bottom:0.5rem;">
+          📊 <span data-lang-en="Verified Deliveries Public Ledger" data-lang-ta="சரிபார்க்கப்பட்ட விநியோக பொதுப் பதிவேடு">சரிபார்க்கப்பட்ட விநியோக பொதுப் பதிவேடு</span>
+        </h2>
+        <p style="color:var(--text-muted); font-size:0.9rem; margin-bottom:1.5rem;" data-lang-en="Every completed food handover in Karur District is logged with timestamp, photo audit, and dual authorization." data-lang-ta="கரூர் மாவட்டத்தில் வெற்றிகரமாக விநியோகிக்கப்பட்ட ஒவ்வொரு உணவும் புகைப்பட சான்றுகளுடன் பதிவு செய்யப்படுகிறது.">
+          கரூர் மாவட்டத்தில் வெற்றிகரமாக விநியோகிக்கப்பட்ட ஒவ்வொரு உணவும் புகைப்பட சான்றுகளுடன் பதிவு செய்யப்படுகிறது.
+        </p>
+
+        <div style="overflow-x:auto;">
+          <table style="width:100%; border-collapse:collapse; font-size:0.9rem; text-align:left;">
+            <thead>
+              <tr style="border-bottom:2px solid var(--border-color); background:var(--bg-page);">
+                <th style="padding:0.75rem;">Mission ID</th>
+                <th style="padding:0.75rem;">Donor (நன்கொடையாளர்)</th>
+                <th style="padding:0.75rem;">Recipient (பெறுநர்)</th>
+                <th style="padding:0.75rem;">Food & Portions</th>
+                <th style="padding:0.75rem;">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="border-bottom:1px solid var(--border-color);">
+                <td style="padding:0.75rem; font-weight:700; color:var(--primary);">#KRR-2026-084</td>
+                <td style="padding:0.75rem;">Hotel Residency Tower</td>
+                <td style="padding:0.75rem;">Anbu Illam Children's Shelter</td>
+                <td style="padding:0.75rem;">80 Veg Meals (Dinner)</td>
+                <td style="padding:0.75rem;"><span class="badge-veg">✓ Delivered & Signed</span></td>
+              </tr>
+              <tr style="border-bottom:1px solid var(--border-color);">
+                <td style="padding:0.75rem; font-weight:700; color:var(--primary);">#KRR-2026-083</td>
+                <td style="padding:0.75rem;">Kongu Marriage Hall</td>
+                <td style="padding:0.75rem;">Annai Teresa Destitute Home</td>
+                <td style="padding:0.75rem;">150 Meals & Sweets</td>
+                <td style="padding:0.75rem;"><span class="badge-veg">✓ Delivered & Signed</span></td>
+              </tr>
+              <tr style="border-bottom:1px solid var(--border-color);">
+                <td style="padding:0.75rem; font-weight:700; color:var(--primary);">#KRR-2026-082</td>
+                <td style="padding:0.75rem;">VSB College Canteen</td>
+                <td style="padding:0.75rem;">Slum Relief Community Kitchen</td>
+                <td style="padding:0.75rem;">60 Chapathi & Dal</td>
+                <td style="padding:0.75rem;"><span class="badge-veg">✓ Delivered & Signed</span></td>
+              </tr>
+              <tr style="border-bottom:1px solid var(--border-color);">
+                <td style="padding:0.75rem; font-weight:700; color:var(--primary);">#KRR-2026-081</td>
+                <td style="padding:0.75rem;">Karur Chettinad Mess</td>
+                <td style="padding:0.75rem;">Karur Blind Association Trust</td>
+                <td style="padding:0.75rem;">45 Variety Rice Packets</td>
+                <td style="padding:0.75rem;"><span class="badge-veg">✓ Delivered & Signed</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 6: ANDROID APP & CAPACITOR ==================== -->
+    <section id="android" class="tab-pane">
+      <div style="max-width: 800px; margin: 0 auto; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 2rem; box-shadow: var(--shadow-sm);">
+        <h2 style="font-size: 1.6rem; color: var(--text-main); margin-bottom: 0.5rem;">
+          📱 <span data-lang-en="Android APK & Capacitor Architecture" data-lang-ta="ஆண்ட்ராய்டு செயலி & கட்டமைப்பு">ஆண்ட்ராய்டு செயலி & கட்டமைப்பு</span>
+        </h2>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;" data-lang-en="Annam Pagirvom includes ready-to-build Android Capacitor configuration for field volunteers and drivers." data-lang-ta="கள தன்னார்வலர்கள் மற்றும் ஓட்டுநர்களுக்காக ஆண்ட்ராய்டு ஆப் உருவாக்க வசதி உள்ளது.">
+          கள தன்னார்வலர்கள் மற்றும் ஓட்டுநர்களுக்காக ஆண்ட்ராய்டு ஆப் உருவாக்க வசதி உள்ளது.
+        </p>
+
+        <div style="background:var(--bg-page); padding:1.25rem; border-radius:var(--radius-md); border:1px solid var(--border-color); margin-bottom:1.5rem;">
+          <h4 style="margin-bottom:0.5rem; color:var(--primary);">📦 Android Native Capabilities:</h4>
+          <ul style="padding-left:1.25rem; font-size:0.9rem; line-height:1.7; color:var(--text-main);">
+            <li><strong>Camera Permission:</strong> Native camera integration for donor food container and recipient signature audit.</li>
+            <li><strong>GPS Coordinates:</strong> Accurate GPS location tagging for volunteer navigation.</li>
+            <li><strong>Google Maps Navigation:</strong> One-touch multi-stop routing (Volunteer ➔ Donor ➔ Shelter Trust).</li>
+            <li><strong>Cleartext Traffic Enabled:</strong> Seamless local network testing with Flask backend.</li>
+          </ul>
+        </div>
+
+        <div style="background:#111827; color:#f3f4f6; padding:1.25rem; border-radius:var(--radius-md); font-family:monospace; font-size:0.85rem; margin-bottom:1.5rem; overflow-x:auto;">
+          # To build Android APK from repo:<br>
+          cd "annam pagirvom"<br>
+          npx cap open android<br><br>
+          # Or compile via command-line Gradle:<br>
+          cd android && ./gradlew assembleDebug<br>
+          # Output APK: android/app/build/outputs/apk/debug/app-debug.apk
+        </div>
+
+        <a href="https://github.com/mounishwarans2/annam-pagirvom" target="_blank" rel="noopener" class="btn btn-primary" style="display:inline-block; padding:0.75rem 1.5rem; text-decoration:none;">
+          📂 Browse Full Android Source Code on GitHub
+        </a>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Application Footer -->
+  <footer style="background:#111827; color:#9ca3af; padding:2rem 0; border-top:1px solid rgba(255,255,255,0.1); font-size:0.85rem; text-align:center;">
+    <div class="container">
+      <p style="margin-bottom:0.5rem; font-weight:600; color:#f3f4f6;">
+        Annam Pagirvom (அன்னம் பகிர்வோம்) • GENCRAFT’26 Hack4Goals PS14
+      </p>
+      <p style="margin-bottom:1rem;">
+        Karur District, Tamil Nadu • Food Waste Reduction & Shelter Relief Platform
+      </p>
+      <p>
+        <a href="https://github.com/mounishwarans2/annam-pagirvom" target="_blank" rel="noopener" style="color:#38bdf8; text-decoration:none; font-weight:700;">
+          GitHub Repository: mounishwarans2/annam-pagirvom
+        </a>
+      </p>
+    </div>
+  </footer>
+
+  <!-- Interactive JavaScript Logic -->
+  <script>
+    let currentLang = 'ta';
+
+    function toggleLanguage() {
+      currentLang = currentLang === 'ta' ? 'en' : 'ta';
+      document.getElementById('langLabel').innerText = currentLang === 'ta' ? 'English' : 'தமிழ்';
+      document.documentElement.lang = currentLang;
+
+      document.querySelectorAll('[data-lang-' + currentLang + ']').forEach(el => {
+        el.innerText = el.getAttribute('data-lang-' + currentLang);
+      });
+    }
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-pane').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
+
+      const targetPane = document.getElementById('tab-' + tabId) || document.getElementById(tabId);
+      if (targetPane) targetPane.classList.add('active');
+
+      const activeBtn = document.querySelector('.tab-btn[data-tab="' + tabId + '"]');
+      if (activeBtn) activeBtn.classList.add('active');
+
+      const activeNav = document.querySelector('.nav-link[data-tab-nav="' + tabId + '"]');
+      if (activeNav) activeNav.classList.add('active');
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function handleDonationSubmit(e) {
+      e.preventDefault();
+      const donor = document.getElementById('donorName').value;
+      const type = document.getElementById('donorType').value;
+      const category = document.getElementById('donorCategory').value;
+      const qty = document.getElementById('donorQuantity').value;
+      const area = document.getElementById('donorArea').value;
+
+      // Add new card dynamically to Live Food Board
+      const foodGrid = document.getElementById('foodGrid');
+      const newCard = document.createElement('div');
+      newCard.className = 'food-card';
+      newCard.style = 'background:var(--bg-card); border:2px solid var(--primary); border-radius:var(--radius-md); overflow:hidden; box-shadow:var(--shadow-md); animation:fadeIn 0.4s ease;';
+      newCard.innerHTML = `
+        <img src="static/uploads/demo_veg_rice.jpg" alt="Meals" style="width:100%; height:180px; object-fit:cover;">
+        <div style="padding:1.25rem;">
+          <div style="display:flex; justify-content:space-between; margin-bottom:0.5rem;">
+            <span class="badge-veg">${category}</span>
+            <span class="badge-urgent">⏳ Just posted (4h left)</span>
+          </div>
+          <h3 style="font-size:1.2rem; margin-bottom:0.35rem; color:var(--text-main);">${qty} Portions Available</h3>
+          <div style="font-size:0.85rem; color:var(--text-muted); margin-bottom:0.75rem;">
+            🏨 <strong>${donor}</strong> (${type}) • ${area}, Karur
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.85rem; border-top:1px solid var(--border-color); padding-top:0.75rem;">
+            <span>📍 Just Now</span>
+            <button onclick="claimFood(this, '${qty} Portions')" class="btn btn-primary" style="padding:0.35rem 0.85rem; font-size:0.85rem;">
+              Claim Batch
+            </button>
+          </div>
+        </div>
+      `;
+      foodGrid.prepend(newCard);
+
+      document.getElementById('donateSuccessMsg').style.display = 'block';
+      setTimeout(() => {
+        switchTab('live-board');
+      }, 1500);
+    }
+
+    function handleRequestSubmit(e) {
+      e.preventDefault();
+      document.getElementById('requestSuccessMsg').style.display = 'block';
+    }
+
+    function claimFood(btn, title) {
+      btn.disabled = true;
+      btn.innerText = '✓ Claimed!';
+      btn.classList.remove('btn-primary');
+      btn.classList.add('btn-outline');
+      alert(`Success! You claimed "${title}". A volunteer driver in Karur has been notified.`);
+    }
+
+    function filterBoard() {
+      const q = document.getElementById('boardSearch').value.toLowerCase();
+      document.querySelectorAll('.food-card').forEach(card => {
+        const text = card.innerText.toLowerCase();
+        card.style.display = text.includes(q) ? 'block' : 'none';
+      });
+    }
+
+    function startCameraSim() {
+      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        navigator.mediaDevices.getUserMedia({ video: true })
+          .then(stream => {
+            alert("Camera access granted! Container photo verified.");
+            stream.getTracks().forEach(track => track.stop());
+          })
+          .catch(err => {
+            alert("Camera preview simulated for demo.");
+          });
+      } else {
+        alert("Camera preview simulated for demo.");
+      }
+    }
+
+    function handleFileSelect(e) {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          const img = document.getElementById('foodPhotoPreview');
+          img.src = event.target.result;
+          img.style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    function getLiveGps() {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          pos => {
+            document.getElementById('gpsCoords').innerText = 
+              `${pos.coords.latitude.toFixed(4)}° N, ${pos.coords.longitude.toFixed(4)}° E (±${Math.round(pos.coords.accuracy)}m)`;
+          },
+          err => {
+            document.getElementById('gpsCoords').innerText = '10.9601° N, 78.0766° E (Karur Center)';
+          }
+        );
+      }
+    }
+  </script>
+</body>
+</html>
