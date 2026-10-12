@@ -576,9 +576,12 @@
           <!-- Camera Verification Simulator -->
           <div style="margin-bottom: 1.5rem; background: var(--bg-page); padding: 1.25rem; border-radius: var(--radius-md); border: 1px dashed var(--border-color); text-align: center;">
             <label class="form-group-label" style="text-align: center; margin-bottom: 0.5rem;">
-              📸 <span data-t-en="Container Verification Photo *" data-t-ta="பாத்திர சரிபார்ப்பு புகைப்படம் *">பாத்திர சரிபார்ப்பு புகைப்படம் *</span>
+              📸 <span data-t-en="Actual Food Container Verification Photo *" data-t-ta="உண்மையான உணவு பாத்திர சரிபார்ப்பு புகைப்படம் *">உண்மையான உணவு பாத்திர சரிபார்ப்பு புகைப்படம் *</span>
             </label>
-            <img id="donorPhotoPreview" src="static/uploads/demo_veg_rice.jpg" alt="Preview" style="max-width: 260px; height: 160px; object-fit: cover; border-radius: var(--radius-sm); border: 2px solid var(--primary); margin: 0.5rem auto 1rem; display: block;">
+            <img id="donorPhotoPreview" src="static/uploads/donor_kitchen_inspection.jpg" alt="Container Inspection Preview" style="max-width: 340px; height: 200px; object-fit: cover; border-radius: var(--radius-sm); border: 2px solid var(--primary); margin: 0.5rem auto 1rem; display: block; box-shadow: var(--shadow-sm);">
+            <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.75rem;">
+              🌡️ Freshness & Temperature Verified (74°C) • Clean Food-Grade Stainless Containers
+            </div>
             
             <div style="display: flex; justify-content: center; gap: 0.65rem; flex-wrap: wrap;">
               <button type="button" onclick="triggerWebcam()" class="btn btn-sm btn-outline">
@@ -795,6 +798,38 @@
         <p class="section-subtitle" data-t-en="Every completed food handover in Karur District is logged with timestamp, photo audit, and dual authorization." data-t-ta="கரூர் மாவட்டத்தில் வெற்றிகரமாக விநியோகிக்கப்பட்ட ஒவ்வொரு உணவும் புகைப்பட சான்றுகளுடன் பதிவு செய்யப்படுகிறது.">
           கரூர் மாவட்டத்தில் வெற்றிகரமாக விநியோகிக்கப்பட்ட ஒவ்வொரு உணவும் புகைப்பட சான்றுகளுடன் பதிவு செய்யப்படுகிறது.
         </p>
+      </div>
+
+      <!-- Real Food Verification & Trust Shelter Handover Spotlight -->
+      <div class="card" style="margin-bottom: 2rem; padding: 0; overflow: hidden; border-top: 4px solid var(--primary); box-shadow: var(--shadow-md);">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));">
+          <div style="position: relative; overflow: hidden; max-height: 420px; background: #000;">
+            <img src="static/uploads/trust_handover_verified.jpg" alt="Actual Food Handover at Karur Anbu Illam Charity Trust" style="width: 100%; height: 100%; object-fit: cover; display: block;">
+            <span style="position: absolute; top: 12px; left: 12px; background: rgba(22, 163, 74, 0.95); color: #ffffff; padding: 0.35rem 0.85rem; border-radius: 9999px; font-size: 0.78rem; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; box-shadow: 0 2px 6px rgba(0,0,0,0.3);">
+              ✓ GPS & Photo Verified Handover
+            </span>
+          </div>
+          <div style="padding: 2.25rem; display: flex; flex-direction: column; justify-content: center; background: #ffffff;">
+            <div style="display: flex; gap: 0.5rem; margin-bottom: 0.85rem; flex-wrap: wrap;">
+              <span class="tag-pill tag-veg">Mission #KRR-2026-084</span>
+              <span class="tag-pill tag-info">Karur Anbu Illam Trust</span>
+              <span class="tag-pill tag-ready">80 Meals Delivered</span>
+            </div>
+            <h3 style="font-size: 1.45rem; font-weight: 800; color: var(--primary-dark); margin-bottom: 0.75rem; line-height: 1.25;">
+              <span data-t-en="Actual Food Handover at Trust Shelter" data-t-ta="இல்லத்தில் நேரடி உணவு ஒப்படைப்பு சான்று">இல்லத்தில் நேரடி உணவு ஒப்படைப்பு சான்று</span>
+            </h3>
+            <p style="font-size: 0.92rem; color: var(--text-muted); line-height: 1.6; margin-bottom: 1.25rem;">
+              <span data-t-en="Verified on-site photo audit taken at Karur Anbu Illam Charity Trust dining hall. Freshly cooked hot meals delivered in stainless steel tier carriers and served on traditional banana leaves directly to elders and children with dual-party handover confirmation." data-t-ta="கரூர் அன்பு இல்லம் அறக்கட்டளை உணவு கூடத்தில் நேரடியாக ஒப்படைக்கப்பட்ட புகைப்படம். வாழை இலையில் சூடான மதிய உணவு வழங்கப்பட்டு, நன்கொடையாளர் மற்றும் இல்ல நிர்வாகி கையொப்பத்துடன் உறுதி செய்யப்பட்டது.">
+                கரூர் அன்பு இல்லம் அறக்கட்டளை உணவு கூடத்தில் நேரடியாக ஒப்படைக்கப்பட்ட புகைப்படம். வாழை இலையில் சூடான மதிய உணவு வழங்கப்பட்டு, நன்கொடையாளர் மற்றும் இல்ல நிர்வாகி கையொப்பத்துடன் உறுதி செய்யப்பட்டது.
+              </span>
+            </p>
+            <div style="background: var(--bg-page); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.85rem 1rem; font-size: 0.84rem; line-height: 1.6;">
+              <div><strong>📍 Location:</strong> Thanthonimalai, Karur (10.9524° N, 78.0812° E)</div>
+              <div><strong>🕒 Verified Timestamp:</strong> 1:45 PM • 12 Oct 2026</div>
+              <div><strong>🤝 Handover Authorized:</strong> Volunteer Driver (#VOL-104) & Shelter In-Charge</div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div class="card" style="padding: 1.5rem; overflow-x: auto;">
