@@ -1,0 +1,759 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _t('live_food_board_title') }} - Annam Pagirvom{% endblock %}
+
+{% block extra_head %}
+<style>
+  .live-board-header {
+    background: linear-gradient(135deg, #064e3b 0%, #065f46 60%, #047857 100%);
+    color: #ffffff;
+    border-radius: var(--radius-lg);
+    padding: 2.25rem 1.75rem;
+    margin-bottom: 2rem;
+    box-shadow: var(--shadow-md);
+    position: relative;
+    overflow: hidden;
+  }
+  .live-board-header::after {
+    content: "🍲";
+    position: absolute;
+    right: 20px;
+    bottom: -15px;
+    font-size: 7rem;
+    opacity: 0.12;
+    pointer-events: none;
+  }
+  .live-pulse-dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    background: #22c55e;
+    border-radius: 50%;
+    margin-right: 6px;
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+    animation: pulse 1.8s infinite;
+  }
+  @keyframes pulse {
+    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
+    70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(34, 197, 94, 0); }
+    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+  }
+  .metrics-strip {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+    margin-top: 1.5rem;
+  }
+  .metric-card-glass {
+    background: rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    border-radius: var(--radius-md);
+    padding: 1rem;
+    text-align: center;
+  }
+  .metric-card-glass .num {
+    font-size: 1.85rem;
+    font-weight: 800;
+    line-height: 1.1;
+    color: #ffffff;
+  }
+  .metric-card-glass .lbl {
+    font-size: 0.78rem;
+    color: #d1fae5;
+    margin-top: 4px;
+    font-weight: 500;
+  }
+  .filter-bar-card {
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 1.25rem;
+    margin-bottom: 2rem;
+    box-shadow: var(--shadow-sm);
+  }
+  .urgency-pill-btn {
+    border: 1px solid var(--border-color);
+    background: #f8fafc;
+    color: var(--text-muted);
+    padding: 0.45rem 1rem;
+    border-radius: 9999px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .urgency-pill-btn.active {
+    background: var(--primary);
+    color: #ffffff;
+    border-color: var(--primary);
+    box-shadow: 0 2px 6px rgba(22, 101, 52, 0.25);
+  }
+  .urgency-pill-btn.urgent.active {
+    background: #dc2626;
+    border-color: #dc2626;
+  }
+  .urgency-pill-btn.medium.active {
+    background: #ea580c;
+    border-color: #ea580c;
+  }
+  .urgency-pill-btn.low.active {
+    background: #0284c7;
+    border-color: #0284c7;
+  }
+  .food-card {
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    box-shadow: var(--shadow-sm);
+  }
+  .food-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-md);
+  }
+  .food-card-img-wrap {
+    position: relative;
+    height: 190px;
+    background: #1e293b;
+    overflow: hidden;
+  }
+  .food-card-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .food-card-img-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #1e293b, #334155);
+    color: #94a3b8;
+    font-size: 0.85rem;
+  }
+  .badge-dietary {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    padding: 3px 9px;
+    border-radius: 9999px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    backdrop-filter: blur(4px);
+  }
+  .badge-dietary.veg {
+    background: rgba(22, 101, 52, 0.9);
+    color: #ffffff;
+    border: 1px solid #4ade80;
+  }
+  .badge-dietary.non_veg {
+    background: rgba(185, 28, 28, 0.9);
+    color: #ffffff;
+    border: 1px solid #f87171;
+  }
+  .badge-urgency {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    padding: 4px 10px;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+  }
+  .badge-urgency.Urgent {
+    background: #fee2e2;
+    color: #b91c1c;
+    border: 1px solid #f87171;
+  }
+  .badge-urgency.Medium {
+    background: #ffedd5;
+    color: #c2410c;
+    border: 1px solid #fb923c;
+  }
+  .badge-urgency.Low {
+    background: #e0f2fe;
+    color: #0369a1;
+    border: 1px solid #38bdf8;
+  }
+  .countdown-ticker {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: var(--radius-sm);
+    padding: 0.5rem 0.75rem;
+    font-size: 0.82rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 0.75rem 0;
+  }
+  .countdown-ticker.urgent {
+    background: #fef2f2;
+    border-color: #fecaca;
+    color: #dc2626;
+  }
+  .countdown-ticker.expired {
+    background: #f1f5f9;
+    color: #64748b;
+  }
+  .emergency-panel {
+    background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
+    border: 1px solid #fed7aa;
+    border-radius: var(--radius-lg);
+    padding: 2rem 1.5rem;
+    margin-top: 3.5rem;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 2rem 1.25rem;">
+
+  <!-- Header Banner & Real Metrics -->
+  <div class="live-board-header">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem;">
+      <div>
+        <div style="font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #a7f3d0; margin-bottom: 0.4rem;">
+          <span class="live-pulse-dot"></span> LIVE REDISTRIBUTION NETWORK • கரூர் மாவட்டம்
+        </div>
+        <h1 style="font-size: 2.1rem; font-weight: 800; line-height: 1.2; margin-bottom: 0.5rem;">
+          {{ _t('live_food_board') }} <span style="font-size: 1.4rem; color: #fde047; font-weight: 600;">(நேரடி உணவு பலகை)</span>
+        </h1>
+        <p style="color: #d1fae5; font-size: 0.95rem; max-width: 680px; margin: 0;">
+          {{ _t('live_board_sub') }}
+        </p>
+      </div>
+      <div style="text-align: right; font-size: 0.8rem; color: #a7f3d0; background: rgba(0,0,0,0.18); padding: 6px 12px; border-radius: 6px;">
+        <div>⏱️ {{ _t('last_updated') }}: <strong id="lastUpdatedDisplay">{{ stats.last_updated }}</strong></div>
+        <div style="font-size: 0.72rem; color: #d1fae5; margin-top: 2px;">{{ stats.active_hours }}</div>
+      </div>
+    </div>
+
+    <!-- Verified Database Statistics (No Hardcoded Claims) -->
+    <div class="metrics-strip">
+      <div class="metric-card-glass">
+        <div class="num" id="statAvailableNow">{{ stats.available_now }}</div>
+        <div class="lbl">{{ _t('available_now') }} ({{ _t('portions') }})</div>
+      </div>
+      <div class="metric-card-glass">
+        <div class="num" id="statTotalDonors">{{ stats.total_donors }}</div>
+        <div class="lbl">{{ _t('total_donors') }} in Karur</div>
+      </div>
+      <div class="metric-card-glass">
+        <div class="num" id="statLocationsCovered">{{ stats.locations_covered }}</div>
+        <div class="lbl">{{ _t('locations_covered') }}</div>
+      </div>
+      <div class="metric-card-glass">
+        <div class="num" style="font-size: 1.25rem; padding-top: 6px;">6 AM – 11 PM</div>
+        <div class="lbl">{{ _t('active_hours') }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Interactive Filters & Location Bar -->
+  <div class="filter-bar-card">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem;">
+      <!-- Urgency Tabs -->
+      <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;" id="urgencyFilterGroup">
+        <button type="button" class="urgency-pill-btn active" data-urgency="all">{{ _t('urgency_filter_all') }}</button>
+        <button type="button" class="urgency-pill-btn urgent" data-urgency="Urgent">🔥 {{ _t('urgency_filter_urgent') }}</button>
+        <button type="button" class="urgency-pill-btn medium" data-urgency="Medium">⚡ {{ _t('urgency_filter_medium') }}</button>
+        <button type="button" class="urgency-pill-btn low" data-urgency="Low">🌱 {{ _t('urgency_filter_low') }}</button>
+      </div>
+
+      <!-- User GPS Location Action -->
+      <div>
+        <button type="button" id="shareLocationBtn" class="btn btn-sm btn-outline" style="border-color: var(--primary); color: var(--primary); font-weight: 600;">
+          {{ _t('share_location_btn') }}
+        </button>
+        <span id="locStatusMsg" style="font-size: 0.75rem; color: var(--text-muted); margin-left: 8px;"></span>
+      </div>
+    </div>
+
+    <!-- Dropdown Filters Grid -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0.75rem;">
+      <!-- Category Filter -->
+      <div>
+        <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 3px;">
+          {{ _t('category_filter') }}
+        </label>
+        <select id="categoryFilter" class="form-select" style="font-size: 0.85rem; padding: 6px 10px; width: 100%; border-radius: 6px; border: 1px solid var(--border-color);">
+          <option value="all">All Categories / அனைத்து வகைகள்</option>
+          <option value="Cooked Meals">Cooked Meals / சமைத்த உணவு</option>
+          <option value="Breakfast">Breakfast / காலை சிற்றுண்டி</option>
+          <option value="Packed Groceries">Packed Groceries / மளிகைப் பொருட்கள்</option>
+          <option value="Bakery Items">Bakery Items / பேக்கரி உணவுகள்</option>
+          <option value="Fresh Produce">Fresh Produce / காய்கறிகள் & பழங்கள்</option>
+          <option value="Beverages">Beverages / பானங்கள்</option>
+        </select>
+      </div>
+
+      <!-- Dietary Preference -->
+      <div>
+        <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 3px;">
+          {{ _t('dietary_filter') }}
+        </label>
+        <select id="dietaryFilter" class="form-select" style="font-size: 0.85rem; padding: 6px 10px; width: 100%; border-radius: 6px; border: 1px solid var(--border-color);">
+          <option value="all">{{ _t('dietary_all') }}</option>
+          <option value="veg">🥬 {{ _t('dietary_veg') }}</option>
+          <option value="non_veg">🍗 {{ _t('dietary_nonveg') }}</option>
+        </select>
+      </div>
+
+      <!-- Karur Area / Locality -->
+      <div>
+        <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 3px;">
+          {{ _t('area_filter') }}
+        </label>
+        <select id="areaFilter" class="form-select" style="font-size: 0.85rem; padding: 6px 10px; width: 100%; border-radius: 6px; border: 1px solid var(--border-color);">
+          <option value="all">{{ _t('all_areas') }}</option>
+          {% for a in karur_areas %}
+            <option value="{{ a }}">{{ a }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- Minimum Quantity -->
+      <div>
+        <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 3px;">
+          Min Portions / குறைந்தபட்ச அளவு
+        </label>
+        <input type="number" id="minQtyFilter" min="1" placeholder="e.g. 10" 
+               style="font-size: 0.85rem; padding: 6px 10px; width: 100%; border-radius: 6px; border: 1px solid var(--border-color);">
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div id="boardLoading" style="display: none; text-align: center; padding: 3rem 1rem; color: var(--text-muted);">
+    <div class="spinner" style="margin: 0 auto 1rem;"></div>
+    <div>{{ _t('loading_live_board') }}</div>
+  </div>
+
+  <!-- Empty State -->
+  <div id="boardEmpty" style="display: {% if not active_donations %}block{% else %}none{% endif %}; text-align: center; padding: 3.5rem 1.5rem; background: #ffffff; border: 1px dashed var(--border-color); border-radius: var(--radius-lg); margin-bottom: 2rem;">
+    <div style="font-size: 3rem; margin-bottom: 1rem;">🌾</div>
+    <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--text-main);">
+      {{ _t('no_live_food') }}
+    </h3>
+    <p style="color: var(--text-muted); font-size: 0.9rem; max-width: 500px; margin: 0 auto 1.5rem;">
+      Shelters and community kitchens can post their daily portion requirements to be immediately notified when surplus is posted.
+    </p>
+    <a href="{{ url_for('post_requirement') }}" class="btn btn-primary btn-sm">
+      + {{ _t('find_food') }}
+    </a>
+  </div>
+
+  <!-- Active Food Donation Cards Grid -->
+  <div class="grid-3" id="foodCardsGrid">
+    {% for d in active_donations %}
+      <div class="food-card" 
+           data-id="{{ d.id }}"
+           data-category="{{ d.category }}"
+           data-dietary="{{ d.dietary_type or 'veg' }}"
+           data-urgency="{{ d.urgency }}"
+           data-area="{{ d.location_area }}"
+           data-quantity="{{ d.quantity }}"
+           data-lat="{{ d.latitude or '' }}"
+           data-lng="{{ d.longitude or '' }}"
+           data-deadline="{{ d.safe_use_deadline }}">
+        
+        <!-- Food Photo -->
+        <div class="food-card-img-wrap">
+          {% if d.image_filename %}
+            <img src="{{ url_for('static', filename='uploads/' + d.image_filename) }}" alt="{{ d.food_name }}" class="food-card-img">
+          {% else %}
+            <div class="food-card-img-placeholder">
+              <span style="font-size: 2.2rem; margin-bottom: 4px;">🍲</span>
+              <span style="font-size: 0.72rem; color: #94a3b8;">Default Container Photo / மாதிரிப் படம்</span>
+            </div>
+          {% endif %}
+
+          <!-- Dietary Badge (Veg / Non-Veg) -->
+          <span class="badge-dietary {{ d.dietary_type or 'veg' }}">
+            {% if d.dietary_type == 'non_veg' %}🍗 Non-Veg{% else %}🥬 Pure Veg{% endif %}
+          </span>
+
+          <!-- Urgency Badge -->
+          <span class="badge-urgency {{ d.urgency }}">
+            {{ d.urgency }}
+          </span>
+        </div>
+
+        <!-- Food Card Body -->
+        <div style="padding: 1.25rem; display: flex; flex-direction: column; flex: 1;">
+          <!-- Donor Info Header -->
+          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 0.6rem;">
+            {% if d.donor_logo %}
+              <img src="{{ url_for('static', filename='uploads/' + d.donor_logo) }}" alt="Logo" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover;">
+            {% else %}
+              <span style="font-size: 1rem;">🏢</span>
+            {% endif %}
+            <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+              {{ d.donor_org }}
+            </div>
+            {% if d.safety_verified_by_donor %}
+              <span title="Donor Safety Certified" style="font-size: 0.72rem; color: #16a34a; font-weight: 700;">✓ Certified</span>
+            {% endif %}
+          </div>
+
+          <!-- Food Name & Quantity -->
+          <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--primary-dark); line-height: 1.3; margin-bottom: 0.35rem;">
+            {{ d.food_name }}
+          </h3>
+          <div style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 0.5rem;">
+            {{ d.category }} • <strong style="color: var(--primary); font-size: 0.95rem;">{{ d.quantity|int }} {{ d.unit }}</strong>
+            {% if d.partial_allocation_allowed %}
+              <span style="font-size: 0.72rem; color: #16a34a; display: block;">✓ {{ _t('partial_allowed_note') }}</span>
+            {% else %}
+              <span style="font-size: 0.72rem; color: #b45309; display: block;">🔒 {{ _t('full_batch_required') }}</span>
+            {% endif %}
+          </div>
+
+          <!-- Description snippet -->
+          <p style="font-size: 0.82rem; color: var(--text-light); line-height: 1.45; margin-bottom: 0.75rem; flex: 1; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+            {{ d.description or 'Fresh wholesome surplus food hot-packed in clean food-grade vessels.' }}
+          </p>
+
+          <!-- Location & Distance -->
+          <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.5rem;">
+            📍 <strong>{{ d.location_area }}</strong>
+            <span class="card-distance-pill" style="display: none; font-size: 0.72rem; background: #e0f2fe; color: #0369a1; padding: 2px 6px; border-radius: 4px; margin-left: 4px;"></span>
+          </div>
+
+          <!-- Real-Time Countdown Ticker -->
+          <div class="countdown-ticker {% if d.urgency == 'Urgent' %}urgent{% endif %}">
+            <span>⏳ {{ _t('time_remaining') }}:</span>
+            <span class="card-countdown-val" data-deadline="{{ d.safe_use_deadline }}">{{ d.remaining_str }}</span>
+          </div>
+
+          <!-- Action Buttons Bar -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 0.5rem;">
+            <!-- Get Directions Button -->
+            {% if d.maps_link %}
+              <a href="{{ d.maps_link }}" target="_blank" class="btn btn-sm btn-outline" style="font-size: 0.75rem; padding: 6px; text-align: center;">
+                🗺️ {{ _t('get_directions') }}
+              </a>
+            {% elif d.latitude and d.longitude %}
+              <a href="https://www.google.com/maps/search/?api=1&query={{ d.latitude }},{{ d.longitude }}" target="_blank" class="btn btn-sm btn-outline" style="font-size: 0.75rem; padding: 6px; text-align: center;">
+                🗺️ {{ _t('get_directions') }}
+              </a>
+            {% else %}
+              <a href="https://www.google.com/maps/search/?api=1&query={{ d.pickup_address|urlencode }}" target="_blank" class="btn btn-sm btn-outline" style="font-size: 0.75rem; padding: 6px; text-align: center;">
+                🗺️ {{ _t('get_directions') }}
+              </a>
+            {% endif %}
+
+            <!-- Contact Donor Button (Secure Role-Based Access) -->
+            {% if d.is_phone_authorized and d.authorized_donor_phone %}
+              <a href="tel:{{ d.authorized_donor_phone }}" class="btn btn-sm btn-outline" style="font-size: 0.75rem; padding: 6px; text-align: center; color: #16a34a; border-color: #86efac; text-decoration: none; font-weight: 700;">
+                📞 {{ _t('call_donor') }} ({{ d.authorized_donor_phone }})
+              </a>
+            {% else %}
+              {% if not current_user %}
+                <a href="{{ url_for('login') }}?next={{ request.path }}" class="btn btn-sm btn-outline" style="font-size: 0.73rem; padding: 6px 8px; text-align: center; color: #64748b; border-color: #cbd5e1; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 4px;" title="{{ _t('sign_in_for_contact') }}">
+                  🔒 {{ _t('sign_in_to_view_contact') }}
+                </a>
+              {% else %}
+                <span class="btn btn-sm btn-outline" style="font-size: 0.73rem; padding: 6px 8px; text-align: center; color: #64748b; border-color: #e2e8f0; background: #f8fafc; cursor: default; display: inline-flex; align-items: center; justify-content: center; gap: 4px;" title="{{ d.donor_phone_message }}">
+                  🔒 {{ _t('contact_restricted') }}
+                </span>
+              {% endif %}
+            {% endif %}
+          </div>
+
+          <!-- Primary Claim / Request Action Button -->
+          <button type="button" class="btn btn-primary btn-sm" style="width: 100%; margin-top: 8px; font-weight: 700;"
+                  onclick="openClaimModal({{ d.id }}, '{{ d.food_name|replace("'", "\\'") }}', {{ d.quantity }}, '{{ d.unit }}', {{ 1 if d.partial_allocation_allowed else 0 }}, '{{ d.safe_use_deadline }}')">
+            🍲 {{ _t('request_food') }} / {{ _t('accept_donation') }}
+          </button>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+
+  <!-- Emergency Assistance Panel (Karur District Verified Contacts) -->
+  <div class="emergency-panel">
+    <div style="display: flex; gap: 1.25rem; align-items: flex-start; flex-wrap: wrap;">
+      <div style="font-size: 2.5rem; line-height: 1;">🚨</div>
+      <div style="flex: 1;">
+        <h3 style="font-size: 1.25rem; font-weight: 800; color: #9a3412; margin-bottom: 0.4rem;">
+          {{ _t('emergency_panel_heading') }} ({{ _t('emergency_helpline_title') }})
+        </h3>
+        <p style="font-size: 0.9rem; color: #7c2d12; line-height: 1.5; margin-bottom: 1rem;">
+          {{ _t('emergency_panel_desc') }}
+        </p>
+        <div style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: center;">
+          <a href="tel:{{ _t('emergency_helpline_phone') }}" class="btn btn-sm" style="background: #ea580c; color: #ffffff; font-weight: 700; text-decoration: none; padding: 8px 16px;">
+            📞 Call {{ _t('emergency_helpline_phone') }}
+          </a>
+          <span style="font-size: 0.85rem; color: #9a3412; font-weight: 600;">
+            Toll-Free Control Room: <strong>{{ _t('emergency_helpline_tollfree') }}</strong>
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Claim / Request Food Modal -->
+<div id="claimModal" class="image-modal-overlay" onclick="closeClaimModal()" style="display: none; align-items: center; justify-content: center;">
+  <div class="image-modal-content" onclick="event.stopPropagation()" style="background: #ffffff; color: var(--text-main); border-radius: var(--radius-lg); max-width: 520px; width: 92%; padding: 1.75rem; text-align: left; position: relative;">
+    <button class="image-modal-close" onclick="closeClaimModal()" style="color: #64748b;">&times;</button>
+    
+    <h3 style="font-size: 1.25rem; font-weight: 800; color: var(--primary-dark); margin-bottom: 0.35rem;" id="modalFoodTitle">
+      Request Food Donation
+    </h3>
+    <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 1.25rem;" id="modalSafeInfo">
+      Rule-based verification will check pickup timing and capacity.
+    </p>
+
+    <form method="POST" id="modalClaimForm" action="">
+      <!-- Quantity Input -->
+      <div style="margin-bottom: 1rem;">
+        <label style="font-size: 0.85rem; font-weight: 700; display: block; margin-bottom: 4px;">
+          {{ _t('claim_quantity') }} *
+        </label>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <input type="number" name="requested_quantity" id="modalReqQty" class="form-input" min="1" step="0.5" required
+                 style="font-size: 1rem; padding: 8px 12px; width: 140px; border: 1px solid var(--border-color); border-radius: 6px;">
+          <span id="modalUnitSpan" style="font-weight: 600; color: var(--text-muted);">portions</span>
+          <span id="modalMaxBadge" style="font-size: 0.75rem; color: var(--primary); background: var(--primary-subtle); padding: 3px 8px; border-radius: 4px;"></span>
+        </div>
+        <div id="modalPartialNotice" style="font-size: 0.75rem; color: #16a34a; margin-top: 4px;"></div>
+      </div>
+
+      {% if not session.get('user_id') %}
+        <!-- Guest Shelter Details -->
+        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 0.85rem; margin-bottom: 1rem;">
+          <div style="font-weight: 700; font-size: 0.82rem; color: var(--primary-dark); margin-bottom: 6px;">
+            Receiver / Shelter Details (Karur District)
+          </div>
+          <div style="margin-bottom: 6px;">
+            <input type="text" name="receiver_name" class="form-input" placeholder="Organization / Shelter Name *" required style="width: 100%; font-size: 0.82rem; padding: 6px 10px; border-radius: 4px; border: 1px solid #cbd5e1;">
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 6px;">
+            <input type="tel" name="receiver_phone" class="form-input" placeholder="10-digit Phone Number *" required style="font-size: 0.82rem; padding: 6px 10px; border-radius: 4px; border: 1px solid #cbd5e1;">
+            <input type="text" name="receiver_area" class="form-input" placeholder="Karur Area (e.g. Gandhigramam)" required style="font-size: 0.82rem; padding: 6px 10px; border-radius: 4px; border: 1px solid #cbd5e1;">
+          </div>
+          <div>
+            <textarea name="delivery_address" class="form-input" rows="2" placeholder="Exact Delivery Address in Karur *" required style="width: 100%; font-size: 0.82rem; padding: 6px 10px; border-radius: 4px; border: 1px solid #cbd5e1;"></textarea>
+          </div>
+        </div>
+      {% endif %}
+
+      <!-- Capacity & Instructions -->
+      <div style="margin-bottom: 1rem;">
+        <label style="font-size: 0.82rem; font-weight: 600; display: block; margin-bottom: 3px;">
+          Daily Serving Capacity / தினசரி தேவை (நபர்கள்)
+        </label>
+        <input type="number" name="serving_capacity" id="modalCapacity" min="1" value="50"
+               style="width: 100%; font-size: 0.85rem; padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 6px;">
+      </div>
+
+      <div style="margin-bottom: 1.25rem;">
+        <label style="font-size: 0.82rem; font-weight: 600; display: block; margin-bottom: 3px;">
+          Additional Notes / ஏதேனும் குறிப்புகள்
+        </label>
+        <textarea name="claim_notes" rows="2" placeholder="e.g. Can arrange volunteer pickup within 45 mins."
+                  style="width: 100%; font-size: 0.85rem; padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 6px;"></textarea>
+      </div>
+
+      <button type="submit" class="btn btn-primary" style="width: 100%; padding: 10px; font-weight: 700;">
+        ✓ Confirm Food Request & Open Coordination
+      </button>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  let userCoords = null;
+
+  // Open Claim Modal
+  function openClaimModal(donationId, foodName, maxQty, unit, partialAllowed, deadline) {
+    const modal = document.getElementById('claimModal');
+    const form = document.getElementById('modalClaimForm');
+    form.action = `/claim-food-item/${donationId}`;
+    
+    document.getElementById('modalFoodTitle').innerText = `Request: ${foodName}`;
+    document.getElementById('modalSafeInfo').innerText = `Available: ${maxQty} ${unit} • Safe Until: ${deadline}`;
+    
+    const qtyInput = document.getElementById('modalReqQty');
+    qtyInput.max = maxQty;
+    qtyInput.value = maxQty;
+    
+    document.getElementById('modalUnitSpan').innerText = unit;
+    document.getElementById('modalMaxBadge').innerText = `Max: ${maxQty} ${unit}`;
+    
+    const notice = document.getElementById('modalPartialNotice');
+    if (partialAllowed) {
+      notice.innerText = "✓ Partial quantity allowed. You may request less than the full batch.";
+      qtyInput.readOnly = false;
+    } else {
+      notice.innerText = "🔒 Donor requires full-batch pickup of all " + maxQty + " " + unit + ".";
+      qtyInput.readOnly = true;
+    }
+
+    modal.style.display = 'flex';
+  }
+
+  function closeClaimModal() {
+    document.getElementById('claimModal').style.display = 'none';
+  }
+
+  // Live countdown ticker (updates every second on client)
+  function updateCountdowns() {
+    const tickers = document.querySelectorAll('.card-countdown-val');
+    const now = new Date().getTime();
+
+    tickers.forEach(el => {
+      const deadlineStr = el.getAttribute('data-deadline');
+      if (!deadlineStr) return;
+
+      const target = new Date(deadlineStr.replace(' ', 'T')).getTime();
+      const diff = target - now;
+
+      if (diff <= 0) {
+        el.innerText = "⚠️ {{ _t('deadline_passed') }}";
+        const tickerWrap = el.closest('.countdown-ticker');
+        if (tickerWrap) {
+          tickerWrap.classList.remove('urgent');
+          tickerWrap.classList.add('expired');
+        }
+      } else {
+        const hours = Math.floor(diff / (1000 * 60 * 60));
+        const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const secs = Math.floor((diff % (1000 * 60)) / 1000);
+        el.innerText = `${hours}h ${mins}m ${secs}s remaining`;
+      }
+    });
+  }
+  setInterval(updateCountdowns, 1000);
+  updateCountdowns();
+
+  // Haversine formula for distance
+  function calcDistanceKm(lat1, lon1, lat2, lon2) {
+    const R = 6371; // km
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+              Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return (R * c).toFixed(1);
+  }
+
+  // Geolocation handling
+  document.getElementById('shareLocationBtn').addEventListener('click', function() {
+    const statusMsg = document.getElementById('locStatusMsg');
+    if (!navigator.geolocation) {
+      statusMsg.innerText = "Geolocation not supported.";
+      return;
+    }
+    statusMsg.innerText = "Detecting GPS location...";
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        userCoords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        statusMsg.innerText = "✓ Location Active (" + userCoords.lat.toFixed(3) + ", " + userCoords.lng.toFixed(3) + ")";
+        applyDistancePills();
+      },
+      (err) => {
+        statusMsg.innerText = "{{ _t('location_disabled_msg') }}";
+      },
+      { timeout: 8000, enableHighAccuracy: true }
+    );
+  });
+
+  function applyDistancePills() {
+    if (!userCoords) return;
+    const cards = document.querySelectorAll('.food-card');
+    cards.forEach(c => {
+      const lat = parseFloat(c.getAttribute('data-lat'));
+      const lng = parseFloat(c.getAttribute('data-lng'));
+      const pill = c.querySelector('.card-distance-pill');
+      if (pill && !isNaN(lat) && !isNaN(lng)) {
+        const km = calcDistanceKm(userCoords.lat, userCoords.lng, lat, lng);
+        pill.innerText = `~${km} km away`;
+        pill.style.display = 'inline-block';
+      }
+    });
+  }
+
+  // Client filtering
+  let selectedUrgency = 'all';
+
+  document.querySelectorAll('#urgencyFilterGroup .urgency-pill-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('#urgencyFilterGroup .urgency-pill-btn').forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
+      selectedUrgency = this.getAttribute('data-urgency');
+      applyFilters();
+    });
+  });
+
+  document.getElementById('categoryFilter').addEventListener('change', applyFilters);
+  document.getElementById('dietaryFilter').addEventListener('change', applyFilters);
+  document.getElementById('areaFilter').addEventListener('change', applyFilters);
+  document.getElementById('minQtyFilter').addEventListener('input', applyFilters);
+
+  function applyFilters() {
+    const cat = document.getElementById('categoryFilter').value;
+    const diet = document.getElementById('dietaryFilter').value;
+    const area = document.getElementById('areaFilter').value;
+    const minQty = parseFloat(document.getElementById('minQtyFilter').value) || 0;
+
+    const cards = document.querySelectorAll('.food-card');
+    let visibleCount = 0;
+
+    cards.forEach(c => {
+      const cCat = c.getAttribute('data-category');
+      const cDiet = c.getAttribute('data-dietary');
+      const cUrg = c.getAttribute('data-urgency');
+      const cArea = c.getAttribute('data-area');
+      const cQty = parseFloat(c.getAttribute('data-quantity')) || 0;
+
+      const matchUrg = (selectedUrgency === 'all') || (cUrg === selectedUrgency);
+      const matchCat = (cat === 'all') || (cCat === cat);
+      const matchDiet = (diet === 'all') || (cDiet === diet);
+      const matchArea = (area === 'all') || (cArea === area);
+      const matchQty = cQty >= minQty;
+
+      if (matchUrg && matchCat && matchDiet && matchArea && matchQty) {
+        c.style.display = 'flex';
+        visibleCount++;
+      } else {
+        c.style.display = 'none';
+      }
+    });
+
+    const emptyBox = document.getElementById('boardEmpty');
+    emptyBox.style.display = (visibleCount === 0) ? 'block' : 'none';
+  }
+
+  // Periodic polling every 20 seconds
+  function pollLiveBoard() {
+    fetch('/api/live-food-board')
+      .then(res => res.json())
+      .then(data => {
+        if (data.status === 'success') {
+          document.getElementById('lastUpdatedDisplay').innerText = data.stats.last_updated;
+          document.getElementById('statAvailableNow').innerText = data.stats.available_now;
+          document.getElementById('statTotalDonors').innerText = data.stats.total_donors;
+          document.getElementById('statLocationsCovered').innerText = data.stats.locations_covered;
+        }
+      })
+      .catch(err => console.log('Poll live board status:', err));
+  }
+  setInterval(pollLiveBoard, 20000);
+</script>
+{% endblock %}

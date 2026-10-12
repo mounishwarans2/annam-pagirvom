@@ -1,0 +1,535 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _t('driver_dashboard') }} - Annam Pagirvom (அன்னம் பகிர்வோம்){% endblock %}
+
+{% block extra_head %}
+<style>
+  .driver-header-strip {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    color: #ffffff;
+    border-radius: var(--radius-lg);
+    padding: 1.75rem;
+    margin-bottom: 2rem;
+    box-shadow: var(--shadow-md);
+    border-left: 6px solid #06b6d4;
+  }
+  .task-filter-pills {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.5rem;
+  }
+  .filter-pill-link {
+    padding: 0.45rem 0.95rem;
+    border-radius: 9999px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    text-decoration: none;
+    background: #f1f5f9;
+    color: var(--text-muted);
+    border: 1px solid var(--border-color);
+    transition: all 0.2s ease;
+  }
+  .filter-pill-link.active, .filter-pill-link:hover {
+    background: var(--primary);
+    color: #ffffff;
+    border-color: var(--primary);
+  }
+  .delivery-mission-card {
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .delivery-mission-card:hover {
+    box-shadow: var(--shadow-md);
+  }
+  .mission-top-bar {
+    background: #f8fafc;
+    border-bottom: 1px solid var(--border-color);
+    padding: 0.85rem 1.25rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .nav-btn-multistop {
+    background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+    color: #ffffff;
+    font-weight: 800;
+    font-size: 0.95rem;
+    padding: 0.75rem 1.25rem;
+    border-radius: var(--radius-md);
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    box-shadow: 0 3px 8px rgba(2, 132, 199, 0.3);
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .nav-btn-multistop:hover {
+    background: linear-gradient(135deg, #0369a1 0%, #075985 100%);
+    color: #ffffff;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(2, 132, 199, 0.4);
+  }
+  .route-step-box {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: var(--radius-md);
+    padding: 1rem;
+    margin-bottom: 1rem;
+  }
+  .camera-mini-box {
+    background: #0f172a;
+    border-radius: var(--radius-md);
+    padding: 8px;
+    text-align: center;
+    margin: 8px 0;
+  }
+  .camera-mini-video {
+    width: 100%;
+    max-height: 240px;
+    border-radius: 6px;
+    background: #000000;
+    object-fit: cover;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 2rem 1.25rem;">
+
+  <!-- Header Banner -->
+  <div class="driver-header-strip">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem;">
+      <div>
+        <div style="font-size: 0.8rem; font-weight: 700; color: #38bdf8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">
+          🚚 LOGISTICS & DELIVERY COORDINATION • கரூர்
+        </div>
+        <h1 style="font-size: 1.85rem; font-weight: 800; line-height: 1.2; margin: 0 0 0.4rem 0;">
+          {{ _t('driver_console_title') }}
+        </h1>
+        <p style="color: #94a3b8; font-size: 0.9rem; margin: 0;">
+          Logged in as: <strong style="color: #ffffff;">{{ current_user.organization_name }}</strong> ({{ current_user.location_area }})
+        </p>
+      </div>
+      <div style="text-align: right;">
+        <span class="user-badge" style="background: #083344; color: #38bdf8; border: 1px solid #0891b2; font-size: 0.85rem; padding: 6px 12px;">
+          {{ _t('driver_dashboard') }} Active
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Safety & Transport Protocol Notice -->
+  <div class="safety-banner" style="margin-bottom: 1.5rem;">
+    <div class="safety-icon">🛡️</div>
+    <div style="font-size: 0.88rem; line-height: 1.5;">
+      <strong>Food Transport & Safety Rule:</strong> Use clean, insulated thermal carriers or covered crates. Follow the multi-stop route strictly (Driver ➔ Donor ➔ Trust) and capture verified handover photos and recipient confirmation.
+    </div>
+  </div>
+
+  <!-- Filter Pills Bar -->
+  <div class="task-filter-pills">
+    <a href="{{ url_for('driver_dashboard', status='all') }}" class="filter-pill-link {% if current_filter == 'all' %}active{% endif %}">
+      {{ _t('filter_all_tasks') }}
+    </a>
+    <a href="{{ url_for('driver_dashboard', status='assigned') }}" class="filter-pill-link {% if current_filter == 'assigned' %}active{% endif %}">
+      {{ _t('filter_assigned') }}
+    </a>
+    <a href="{{ url_for('driver_dashboard', status='accepted') }}" class="filter-pill-link {% if current_filter == 'accepted' %}active{% endif %}">
+      {{ _t('filter_accepted') }}
+    </a>
+    <a href="{{ url_for('driver_dashboard', status='en_route_pickup') }}" class="filter-pill-link {% if current_filter == 'en_route_pickup' %}active{% endif %}">
+      {{ _t('filter_en_route_pickup') }}
+    </a>
+    <a href="{{ url_for('driver_dashboard', status='collected') }}" class="filter-pill-link {% if current_filter == 'collected' %}active{% endif %}">
+      {{ _t('filter_collected') }}
+    </a>
+    <a href="{{ url_for('driver_dashboard', status='en_route_delivery') }}" class="filter-pill-link {% if current_filter == 'en_route_delivery' %}active{% endif %}">
+      {{ _t('filter_en_route_delivery') }}
+    </a>
+    <a href="{{ url_for('driver_dashboard', status='delivered') }}" class="filter-pill-link {% if current_filter == 'delivered' %}active{% endif %}">
+      {{ _t('filter_delivered') }}
+    </a>
+    <a href="{{ url_for('driver_dashboard', status='disputed') }}" class="filter-pill-link {% if current_filter in ['disputed', 'review', 'needs_review'] %}active{% endif %}">
+      ⚠️ {{ _t('filter_review') }}
+    </a>
+  </div>
+
+  <!-- Unassigned Available Tasks Section -->
+  {% if unclaimed_tasks and current_filter in ['all', 'available', 'assigned'] %}
+    <div style="margin-bottom: 2.5rem;">
+      <h2 style="font-size: 1.3rem; font-weight: 800; color: #7c3aed; margin-bottom: 1rem;">
+        🚀 {{ _t('unclaimed_tasks_title') }} ({{ unclaimed_tasks|length }})
+      </h2>
+      <div class="grid-2">
+        {% for ut in unclaimed_tasks %}
+          <div class="card" style="border-left: 4px solid #7c3aed; padding: 1.25rem;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
+              <span class="status-pill status-assigned">{{ _t('awaiting_confirmation') }}</span>
+              <span style="font-size: 0.8rem; color: var(--text-light);">Mission #{{ ut.id }}</span>
+            </div>
+            <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 0.35rem;">
+              {{ ut.food_name }} ({{ ut.target_quantity|int }} {{ ut.unit }})
+            </h3>
+            <div style="font-size: 0.82rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 0.75rem;">
+              • Donor: <strong>{{ ut.donor_org }}</strong> ({{ ut.donor_area }}) <span style="font-size: 0.75rem; color: #64748b;">• 🔒 {{ _t('contact_available_on_claim') }}</span><br>
+              • Trust/Receiver: <strong>{{ ut.receiver_org }}</strong> ({{ ut.receiver_area }}) <span style="font-size: 0.75rem; color: #64748b;">• 🔒 {{ _t('contact_available_on_claim') }}</span><br>
+              • Safe Until: <strong style="color: #b45309;">{{ ut.safe_use_deadline }}</strong>
+            </div>
+
+            <form method="POST" action="{{ url_for('claim_pickup_task', task_id=ut.id) }}">
+              <button type="submit" class="btn btn-primary btn-sm" style="width: 100%; font-weight: 700;">
+                ✓ Accept Mission & Assign to Me
+              </button>
+            </form>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  {% endif %}
+
+  <!-- My Assigned Delivery Missions Section -->
+  <div>
+    <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--primary-dark); margin-bottom: 1rem;">
+      📋 {{ _t('my_active_missions') }} ({{ my_tasks|length }})
+    </h2>
+
+    {% if my_tasks %}
+      {% for t in my_tasks %}
+        <div class="delivery-mission-card" id="task-card-{{ t.id }}">
+          
+          <!-- Top Bar with Task ID, Status & Urgency -->
+          <div class="mission-top-bar">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <strong style="font-size: 1.05rem; color: var(--primary-dark);">Task #{{ t.id }}</strong>
+              <span class="status-pill status-{{ t.task_status }}">
+                {{ _t('status_' + t.task_status, default=t.task_status) }}
+              </span>
+              {% if t.discrepancy_notes %}
+                <span style="font-size: 0.75rem; background: #fee2e2; color: #dc2626; padding: 2px 8px; border-radius: 9999px; font-weight: 700;">
+                  ⚠️ Disputed / Discrepancy
+                </span>
+              {% endif %}
+            </div>
+
+            <div style="font-size: 0.82rem; color: var(--text-muted);">
+              ⏳ Safe Deadline: <strong style="color: #b45309;">{{ t.safe_use_deadline }}</strong> 
+              ({{ t.remaining_str }})
+            </div>
+          </div>
+
+          <!-- Card Body Grid -->
+          <div style="padding: 1.5rem;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem;">
+              
+              <!-- Left Column: Food Details & Photo -->
+              <div>
+                <div style="display: flex; gap: 12px; align-items: flex-start; margin-bottom: 1rem;">
+                  {% if t.image_filename %}
+                    <img src="{{ url_for('static', filename='uploads/' + t.image_filename) }}" alt="{{ t.food_name }}" 
+                         style="width: 90px; height: 75px; object-fit: cover; border-radius: 8px; border: 1.5px solid var(--border-color);">
+                  {% else %}
+                    <div style="width: 90px; height: 75px; background: #e2e8f0; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 2rem;">
+                      🍲
+                    </div>
+                  {% endif %}
+                  <div>
+                    <h3 style="font-size: 1.25rem; font-weight: 800; color: var(--text-main); margin: 0 0 4px 0;">
+                      {{ t.food_name }}
+                    </h3>
+                    <div style="font-size: 0.85rem; color: var(--text-muted);">
+                      {{ t.category }} • <strong style="color: #16a34a; font-size: 1rem;">{{ t.target_quantity|int }} {{ t.unit }}</strong>
+                    </div>
+                    {% if t.collected_quantity %}
+                      <div style="font-size: 0.78rem; color: var(--text-light); margin-top: 2px;">
+                        Collected: <strong>{{ t.collected_quantity|int }} {{ t.unit }}</strong>
+                      </div>
+                    {% endif %}
+                  </div>
+                </div>
+
+                <!-- Pickup Instructions from Donor -->
+                {% if t.pickup_instructions %}
+                  <div style="background: #eff6ff; border-left: 3px solid #3b82f6; padding: 8px 12px; border-radius: 4px; font-size: 0.82rem; margin-bottom: 1rem;">
+                    <strong>{{ _t('pickup_instructions') }}:</strong> {{ t.pickup_instructions }}
+                  </div>
+                {% endif %}
+
+                <!-- Discrepancy Notes if any -->
+                {% if t.discrepancy_notes %}
+                  <div style="background: #fef2f2; border-left: 3px solid #ef4444; padding: 8px 12px; border-radius: 4px; font-size: 0.82rem; color: #991b1b; margin-bottom: 1rem;">
+                    <strong>Discrepancy / Incident Note:</strong> {{ t.discrepancy_notes }}
+                  </div>
+                {% endif %}
+              </div>
+
+              <!-- Right Column: Locations, Phone Buttons & Multi-Stop Navigation -->
+              <div>
+                
+                <!-- ROUTE ORDER: Driver -> Stop 1: Donor -> Destination: Trust -->
+                <div class="route-step-box">
+                  <div style="font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--primary); margin-bottom: 6px;">
+                    📍 STOP 1: DONOR FOOD PICKUP
+                  </div>
+                  <div style="font-size: 0.9rem; font-weight: 700; color: var(--text-main);">
+                    {{ t.donor_org }}
+                  </div>
+                  <div style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 6px;">
+                    {{ t.pickup_address }}
+                  </div>
+
+                  <!-- Call Donor & Navigate Donor Buttons -->
+                  <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                    {% if t.resolved_donor_phone %}
+                      <a href="tel:{{ t.resolved_donor_phone }}" class="btn btn-sm btn-outline" style="font-size: 0.78rem; padding: 4px 10px; color: #16a34a; border-color: #86efac; font-weight: 700; text-decoration: none;">
+                        📞 {{ _t('call_donor') }} ({{ t.resolved_donor_phone }})
+                      </a>
+                    {% endif %}
+
+                    {% if t.to_donor_url %}
+                      <a href="{{ t.to_donor_url }}" target="_blank" class="btn btn-sm btn-outline" style="font-size: 0.78rem; padding: 4px 10px; color: #0284c7; border-color: #7dd3fc;">
+                        🧭 {{ _t('navigate_to_donor') }}
+                      </a>
+                    {% else %}
+                      <span style="font-size: 0.75rem; color: #dc2626;">{{ _t('donor_pickup_unavailable') }}</span>
+                    {% endif %}
+                  </div>
+                </div>
+
+                <div class="route-step-box">
+                  <div style="font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: #ea580c; margin-bottom: 6px;">
+                    🏠 DESTINATION: RECEIVING TRUST / SHELTER
+                  </div>
+                  <div style="font-size: 0.9rem; font-weight: 700; color: var(--text-main);">
+                    {{ t.receiver_org or 'Assigned Receiving Organization' }}
+                  </div>
+                  <div style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 6px;">
+                    {{ t.delivery_address or 'Karur Trust Delivery Address' }}
+                  </div>
+
+                  <!-- Call Receiver & Navigate Trust Buttons -->
+                  <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                    {% if t.resolved_receiver_phone %}
+                      <a href="tel:{{ t.resolved_receiver_phone }}" class="btn btn-sm btn-outline" style="font-size: 0.78rem; padding: 4px 10px; color: #16a34a; border-color: #86efac; font-weight: 700; text-decoration: none;">
+                        📞 {{ _t('call_receiving_trust') }} ({{ t.resolved_receiver_phone }})
+                      </a>
+                    {% endif %}
+
+                    {% if t.to_receiver_url %}
+                      <a href="{{ t.to_receiver_url }}" target="_blank" class="btn btn-sm btn-outline" style="font-size: 0.78rem; padding: 4px 10px; color: #0284c7; border-color: #7dd3fc;">
+                        🧭 {{ _t('navigate_to_trust') }}
+                      </a>
+                    {% else %}
+                      <span style="font-size: 0.75rem; color: #dc2626;">{{ _t('trust_delivery_unavailable') }}</span>
+                    {% endif %}
+                  </div>
+                </div>
+
+                <!-- PROMINENT MULTI-STOP NAVIGATION BUTTON -->
+                <div style="margin-top: 1rem;">
+                  {% if t.multi_stop_url %}
+                    <a href="{{ t.multi_stop_url }}" target="_blank" class="nav-btn-multistop" style="width: 100%; justify-content: center;">
+                      🗺️ Navigate: Donor → Trust ({{ _t('navigate_donor_trust') }})
+                    </a>
+                    <div style="font-size: 0.72rem; color: var(--text-muted); text-align: center; margin-top: 4px;">
+                      {{ _t('navigate_donor_trust_sub') }}
+                    </div>
+                  {% else %}
+                    <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 6px; padding: 8px 12px; font-size: 0.82rem; color: #b91c1c;">
+                      ⚠️ {% if t.donor_missing %}{{ _t('donor_pickup_unavailable') }}{% else %}{{ _t('trust_delivery_unavailable') }}{% endif %}
+                    </div>
+                  {% endif %}
+                </div>
+
+              </div>
+            </div>
+
+            <!-- WORKFLOW TRANSITION ACTIONS BAR -->
+            <div style="margin-top: 1.5rem; border-top: 1px solid var(--border-color); padding-top: 1.25rem;">
+              
+              <!-- STEP 1: ACCEPTED -> START TRIP TO PICKUP -->
+              {% if t.task_status == 'assigned' %}
+                <form method="POST" action="{{ url_for('claim_pickup_task', task_id=t.id) }}">
+                  <button type="submit" class="btn btn-primary" style="padding: 8px 18px; font-weight: 700;">
+                    ✓ {{ _t('status_accepted') }} / Accept Task
+                  </button>
+                </form>
+
+              {% elif t.task_status == 'accepted' %}
+                <form method="POST" action="{{ url_for('driver_en_route_pickup', task_id=t.id) }}">
+                  <button type="submit" class="btn btn-primary" style="padding: 10px 20px; font-weight: 700;">
+                    🚀 {{ _t('start_trip_pickup') }} (En Route to Donor)
+                  </button>
+                </form>
+
+              <!-- STEP 2: ON THE WAY TO PICKUP -> CAPTURE PICKUP EVIDENCE -->
+              {% elif t.task_status == 'en_route_pickup' %}
+                <details style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 12px;">
+                  <summary style="cursor: pointer; font-size: 0.95rem; font-weight: 800; color: #166534;">
+                    📦 {{ _t('take_pickup_photo_evidence') }}
+                  </summary>
+
+                  <form method="POST" action="{{ url_for('mark_food_collected', task_id=t.id) }}" enctype="multipart/form-data" style="margin-top: 12px;">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-bottom: 10px;">
+                      <div>
+                        <label style="font-size: 0.8rem; font-weight: 700; display: block; margin-bottom: 3px;">
+                          Donor Staff Name / கையொப்பம் *
+                        </label>
+                        <input type="text" name="donor_signature" placeholder="e.g. Chef Kumar" required
+                               style="width: 100%; font-size: 0.85rem; padding: 6px 10px; border-radius: 4px; border: 1px solid var(--border-color);">
+                      </div>
+                      <div>
+                        <label style="font-size: 0.8rem; font-weight: 700; display: block; margin-bottom: 3px;">
+                          Actual Quantity Collected ({{ t.unit }}) *
+                        </label>
+                        <input type="number" name="collected_quantity" value="{{ t.target_quantity|int }}" step="0.5" required
+                               style="width: 100%; font-size: 0.85rem; padding: 6px 10px; border-radius: 4px; border: 1px solid var(--border-color);">
+                      </div>
+                    </div>
+
+                    <!-- In-page Live Camera for Pickup -->
+                    <div style="margin-bottom: 10px;">
+                      <label style="font-size: 0.8rem; font-weight: 700; display: block; margin-bottom: 3px;">
+                        📷 {{ _t('pickup_evidence') }} (Utensils & Containers at Donor Kitchen)
+                      </label>
+                      <input type="file" name="pickup_photo_file" accept="image/*" capture="environment" 
+                             style="font-size: 0.85rem; width: 100%; padding: 6px; border: 1px dashed var(--border-color); border-radius: 4px;">
+                    </div>
+
+                    <div style="margin-bottom: 10px;">
+                      <input type="text" name="handover_notes" placeholder="Transport notes (e.g. 2 thermal carrier boxes loaded safely)"
+                             style="width: 100%; font-size: 0.82rem; padding: 6px 10px; border-radius: 4px; border: 1px solid var(--border-color);">
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" style="padding: 10px 20px; font-weight: 700;">
+                      ✓ Confirm Food Collection & Move to Transit
+                    </button>
+                  </form>
+                </details>
+
+              <!-- STEP 3: COLLECTED -> START TRIP TO RECEIVER -->
+              {% elif t.task_status == 'collected' %}
+                <form method="POST" action="{{ url_for('driver_en_route_delivery', task_id=t.id) }}">
+                  <button type="submit" class="btn btn-accent" style="padding: 10px 20px; font-weight: 700;">
+                    🚚 {{ _t('start_trip_delivery') }} (En Route to Trust)
+                  </button>
+                </form>
+
+              <!-- STEP 4: ON THE WAY TO RECEIVER -> CAPTURE DELIVERY EVIDENCE -->
+              {% elif t.task_status == 'en_route_delivery' %}
+                <details style="background: #fff7ed; border: 1px solid #fed7aa; border-radius: 8px; padding: 12px;" open>
+                  <summary style="cursor: pointer; font-size: 0.95rem; font-weight: 800; color: #9a3412;">
+                    🛡️ {{ _t('take_delivery_photo_evidence') }}
+                  </summary>
+
+                  <form method="POST" action="{{ url_for('mark_food_delivered', task_id=t.id) }}" enctype="multipart/form-data" style="margin-top: 12px;">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-bottom: 10px;">
+                      <div>
+                        <label style="font-size: 0.8rem; font-weight: 700; display: block; margin-bottom: 3px;">
+                          Receiver Representative Name / பெறுநர் பெயர் *
+                        </label>
+                        <input type="text" name="receiver_signature" placeholder="e.g. Sister Meenakshi" required
+                               style="width: 100%; font-size: 0.85rem; padding: 6px 10px; border-radius: 4px; border: 1px solid var(--border-color);">
+                      </div>
+                      <div>
+                        <label style="font-size: 0.8rem; font-weight: 700; display: block; margin-bottom: 3px;">
+                          Actual Delivered Quantity ({{ t.unit }}) *
+                        </label>
+                        <input type="number" name="delivered_quantity" value="{{ (t.collected_quantity or t.target_quantity)|int }}" step="0.5" required
+                               style="width: 100%; font-size: 0.85rem; padding: 6px 10px; border-radius: 4px; border: 1px solid var(--border-color);">
+                      </div>
+                    </div>
+
+                    <!-- In-page Live Camera for Delivery -->
+                    <div style="margin-bottom: 10px;">
+                      <label style="font-size: 0.8rem; font-weight: 700; display: block; margin-bottom: 3px;">
+                        📷 {{ _t('delivery_evidence') }} (Food handover at trust dining hall)
+                      </label>
+                      <input type="file" name="delivery_photo_file" accept="image/*" capture="environment" 
+                             style="font-size: 0.85rem; width: 100%; padding: 6px; border: 1px dashed var(--border-color); border-radius: 4px;">
+                    </div>
+
+                    <!-- Discrepancy explanation if delivered != collected -->
+                    <div style="margin-bottom: 10px;">
+                      <input type="text" name="discrepancy_notes" placeholder="Discrepancy explanation (e.g. 2 portions damaged during transit, 38 received in good condition)"
+                             style="width: 100%; font-size: 0.82rem; padding: 6px 10px; border-radius: 4px; border: 1px solid var(--border-color);">
+                    </div>
+
+                    <button type="submit" class="btn btn-accent" style="padding: 10px 20px; font-weight: 700;">
+                      ✓ Record Verified Delivery in Public Ledger
+                    </button>
+                  </form>
+                </details>
+
+              <!-- COMPLETED DELIVERED STATE -->
+              {% elif t.task_status == 'delivered' %}
+                <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+                  <span style="color: #16a34a; font-weight: 800; font-size: 0.95rem;">
+                    🛡️ Verified Delivery Completed & Recorded ({{ t.delivered_at }})
+                  </span>
+                  {% if t.delivery_photo %}
+                    <span style="font-size: 0.82rem; color: var(--text-muted);">
+                      📷 Photo Evidence Saved
+                    </span>
+                  {% endif %}
+                </div>
+              {% endif %}
+
+              <!-- Report Issue / Dispute Option -->
+              {% if t.task_status not in ['delivered', 'cancelled', 'disputed'] %}
+                <div style="margin-top: 10px; text-align: right;">
+                  <details style="display: inline-block; text-align: left;">
+                    <summary style="font-size: 0.75rem; color: #dc2626; cursor: pointer; font-weight: 600;">
+                      ⚠️ {{ _t('report_issue_dispute') }}
+                    </summary>
+                    <form method="POST" action="{{ url_for('driver_report_issue', task_id=t.id) }}" style="margin-top: 6px; background: #fff1f2; padding: 8px; border-radius: 6px; border: 1px solid #fecdd3;">
+                      <input type="text" name="dispute_reason" placeholder="Explain the problem (e.g. donor kitchen closed, address unreachable)" required
+                             style="font-size: 0.8rem; width: 280px; padding: 4px 8px; border-radius: 4px; border: 1px solid #fda4af; margin-right: 4px;">
+                      <button type="submit" class="btn btn-sm" style="background: #dc2626; color: #ffffff; font-size: 0.75rem; padding: 4px 10px;">
+                        Submit Alert
+                      </button>
+                    </form>
+                  </details>
+                </div>
+              {% endif %}
+
+            </div>
+
+          </div>
+        </div>
+      {% endfor %}
+    {% else %}
+      <div style="padding: 2.5rem; text-align: center; background: #ffffff; border: 1px dashed var(--border-color); border-radius: var(--radius-lg); color: var(--text-muted);">
+        <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🚚</div>
+        <h3>No missions found for the selected filter.</h3>
+        <p style="font-size: 0.85rem;">Check "All Tasks" or accept available missions above.</p>
+      </div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  // Periodic polling for driver tasks
+  function pollDriverTasks() {
+    fetch('/api/driver/tasks')
+      .then(res => res.json())
+      .then(data => {
+        // Can optionally flash notification when new tasks are assigned
+      })
+      .catch(e => console.log('Driver polling:', e));
+  }
+  setInterval(pollDriverTasks, 20000);
+</script>
+{% endblock %}

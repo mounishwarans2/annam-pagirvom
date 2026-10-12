@@ -1,0 +1,369 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _t('admin_title') }} - Annam Pagirvom (அன்னம் பகிர்வோம்){% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 2.5rem 1.25rem;">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+    <div>
+      <h1 style="font-size: 1.85rem; font-weight: 800; color: var(--primary-dark);">
+        🛡️ {{ _t('admin_title') }}
+      </h1>
+      <p style="color: var(--text-muted); font-size: 0.95rem;">
+        {{ _t('admin_sub') }}
+      </p>
+    </div>
+    <form method="POST" action="{{ url_for('reset_demo') }}" data-confirm="Reset database back to standard fictional demo state?">
+      <button type="submit" class="btn btn-sm btn-outline" style="border-color: #f59e0b; color: #b45309;">
+        {{ _t('reset_demo_btn') }}
+      </button>
+    </form>
+  </div>
+
+  <!-- System Summary Row -->
+  <div class="metrics-grid">
+    <div class="metric-card">
+      <div class="metric-label">{{ _t('reg_orgs') }}</div>
+      <div class="metric-value">{{ users|length }}</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">{{ _t('all_donations') }}</div>
+      <div class="metric-value">{{ donations|length }}</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">{{ _t('all_requirements') }}</div>
+      <div class="metric-value">{{ requirements|length }}</div>
+    </div>
+    <div class="metric-card accent">
+      <div class="metric-label">{{ _t('pickup_missions') }}</div>
+      <div class="metric-value" style="color: var(--accent);">{{ tasks|length }}</div>
+    </div>
+  </div>
+
+  <!-- ================= COORDINATOR DISPATCH & MATCHING CONSOLE ================= -->
+  <div style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border-radius: var(--radius-lg); padding: 1.75rem; margin-bottom: 2.5rem; color: #ffffff; border-left: 6px solid #06b6d4; box-shadow: var(--shadow-md);">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.5rem;">
+      <div>
+        <div style="font-size: 0.78rem; font-weight: 700; color: #38bdf8; text-transform: uppercase; letter-spacing: 0.05em;">
+          🎯 CENTRAL DISPATCH & LOGISTICS ENGINE
+        </div>
+        <h2 style="font-size: 1.45rem; font-weight: 800; margin: 2px 0 0 0; color: #ffffff;">
+          {{ _t('coordinator_console') }}
+        </h2>
+      </div>
+      <span class="user-badge" style="background: #083344; color: #38bdf8; border: 1px solid #0891b2; font-size: 0.8rem; padding: 4px 10px;">
+        Active Coordinator: {{ current_user.organization_name }}
+      </span>
+    </div>
+
+    <div class="grid-2">
+      <!-- 1. Match Food Donation with Request -->
+      <div style="background: #1e293b; border: 1px solid #334155; border-radius: var(--radius-md); padding: 1.25rem;">
+        <h3 style="font-size: 1.1rem; font-weight: 700; color: #38bdf8; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 6px;">
+          ⚡ {{ _t('match_donations_requests') }}
+        </h3>
+        <p style="font-size: 0.8rem; color: #94a3b8; margin-bottom: 1rem;">
+          Pair an active surplus donation batch with a registered receiver requirement.
+        </p>
+
+        {% if open_donations and open_requirements %}
+          <form method="POST" action="{{ url_for('coordinator_match') }}">
+            <div style="margin-bottom: 0.75rem;">
+              <label style="font-size: 0.75rem; font-weight: 700; color: #cbd5e1; display: block; margin-bottom: 3px;">
+                Select Surplus Donation *
+              </label>
+              <select name="donation_id" class="form-select" required style="width: 100%; font-size: 0.82rem; background: #0f172a; color: #f8fafc; border-color: #475569;">
+                {% for od in open_donations %}
+                  <option value="{{ od.id }}">
+                    #{{ od.id }} - {{ od.food_name }} ({{ od.quantity|int }} {{ od.unit }}) • {{ od.donor_name }} ({{ od.donor_area }})
+                  </option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div style="margin-bottom: 0.75rem;">
+              <label style="font-size: 0.75rem; font-weight: 700; color: #cbd5e1; display: block; margin-bottom: 3px;">
+                Select Recipient Request *
+              </label>
+              <select name="requirement_id" class="form-select" required style="width: 100%; font-size: 0.82rem; background: #0f172a; color: #f8fafc; border-color: #475569;">
+                {% for orq in open_requirements %}
+                  <option value="{{ orq.id }}">
+                    #{{ orq.id }} - {{ orq.category }} ({{ orq.quantity_needed|int }} {{ orq.unit }}) • {{ orq.receiver_name }} ({{ orq.receiver_area }}) [{{ orq.urgency_level }}]
+                  </option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div style="margin-bottom: 1rem;">
+              <label style="font-size: 0.75rem; font-weight: 700; color: #cbd5e1; display: block; margin-bottom: 3px;">
+                Quantity to Allocate (optional, blank = auto-fit)
+              </label>
+              <input type="number" name="matched_quantity" step="0.5" placeholder="Auto-calculated from capacity"
+                     style="width: 100%; font-size: 0.82rem; background: #0f172a; color: #f8fafc; border: 1px solid #475569; padding: 6px 10px; border-radius: 6px;">
+            </div>
+
+            <button type="submit" class="btn btn-sm" style="width: 100%; background: #06b6d4; color: #0f172a; font-weight: 800;">
+              ✓ Pair & Generate Delivery Task
+            </button>
+          </form>
+        {% else %}
+          <div style="background: #0f172a; border-radius: 6px; padding: 1rem; font-size: 0.82rem; color: #94a3b8; text-align: center;">
+            {% if not open_donations %}
+              ℹ️ {{ _t('no_open_donations') }}
+            {% else %}
+              ℹ️ {{ _t('no_open_requirements') }}
+            {% endif %}
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- 2. Assign Authorized Driver to Task -->
+      <div style="background: #1e293b; border: 1px solid #334155; border-radius: var(--radius-md); padding: 1.25rem;">
+        <h3 style="font-size: 1.1rem; font-weight: 700; color: #34d399; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 6px;">
+          🚚 {{ _t('assign_driver') }}
+        </h3>
+        <p style="font-size: 0.8rem; color: #94a3b8; margin-bottom: 1rem;">
+          Assign an authorized delivery driver or youth volunteer team to an open task.
+        </p>
+
+        {% if unassigned_tasks and drivers %}
+          <form method="POST" action="{{ url_for('coordinator_assign_driver') }}">
+            <div style="margin-bottom: 0.75rem;">
+              <label style="font-size: 0.75rem; font-weight: 700; color: #cbd5e1; display: block; margin-bottom: 3px;">
+                Select Delivery Task *
+              </label>
+              <select name="task_id" class="form-select" required style="width: 100%; font-size: 0.82rem; background: #0f172a; color: #f8fafc; border-color: #475569;">
+                {% for ut in unassigned_tasks %}
+                  <option value="{{ ut.id }}">
+                    Task #{{ ut.id }} - {{ ut.food_name }} ({{ ut.orig_quantity|int }} {{ ut.unit }}) • From: {{ ut.donor_org }} To: {{ ut.receiver_org or 'Shelter' }}
+                  </option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div style="margin-bottom: 1rem;">
+              <label style="font-size: 0.75rem; font-weight: 700; color: #cbd5e1; display: block; margin-bottom: 3px;">
+                Select Authorized Driver / Volunteer *
+              </label>
+              <select name="driver_id" class="form-select" required style="width: 100%; font-size: 0.82rem; background: #0f172a; color: #f8fafc; border-color: #475569;">
+                {% for drv in drivers %}
+                  <option value="{{ drv.id }}">
+                    {{ drv.organization_name }} ({{ drv.location_area }}) • 📞 {{ drv.phone }} [{{ drv.role|title }}]
+                  </option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <button type="submit" class="btn btn-sm" style="width: 100%; background: #10b981; color: #ffffff; font-weight: 800;">
+              🚚 Assign Driver & Dispatch Mission
+            </button>
+          </form>
+        {% else %}
+          <div style="background: #0f172a; border-radius: 6px; padding: 1rem; font-size: 0.82rem; color: #94a3b8; text-align: center;">
+            {% if not unassigned_tasks %}
+              ✓ All active delivery missions currently have assigned drivers.
+            {% else %}
+              ⚠️ No authorized drivers currently registered in system.
+            {% endif %}
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Audit Trail of Status Changes -->
+  <div style="margin-bottom: 2.5rem;">
+    <h2 style="font-size: 1.35rem; font-weight: 700; color: var(--primary); margin-bottom: 1rem;">
+      🔍 {{ _t('audit_trail_title') }}
+    </h2>
+    <div class="table-responsive">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Time</th>
+            <th>Entity</th>
+            <th>ID</th>
+            <th>Transition</th>
+            <th>Responsible User</th>
+            <th>Remarks</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if audit_logs %}
+            {% for a in audit_logs %}
+              <tr>
+                <td style="font-size: 0.8rem; color: var(--text-muted);">{{ a.timestamp }}</td>
+                <td><strong>{{ a.entity_type }}</strong></td>
+                <td>#{{ a.entity_id }}</td>
+                <td>
+                  <span class="status-pill status-{{ a.previous_status or 'posted' }}">{{ a.previous_status or 'NEW' }}</span>
+                  ➔
+                  <span class="status-pill status-{{ a.new_status }}">{{ a.new_status }}</span>
+                </td>
+                <td>{{ a.username or 'System' }} ({{ a.role or 'N/A' }})</td>
+                <td style="font-size: 0.85rem; color: var(--text-muted);">{{ a.remarks or '-' }}</td>
+              </tr>
+            {% endfor %}
+          {% else %}
+            <tr>
+              <td colspan="6" style="text-align: center; padding: 1.5rem; color: var(--text-muted);">
+                {{ _t('no_audit_logs') }}
+              </td>
+            </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- All Registered Users Table -->
+  <div style="margin-bottom: 2.5rem;">
+    <h2 style="font-size: 1.35rem; font-weight: 700; color: var(--primary-dark); margin-bottom: 1rem;">
+      👥 {{ _t('all_users_title') }}
+    </h2>
+    <div class="table-responsive">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>{{ _t('org_name') }}</th>
+            <th>{{ _t('select_role') }}</th>
+            <th>{{ _t('email') }}</th>
+            <th>{{ _t('phone') }}</th>
+            <th>{{ _t('city_area') }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for u in users %}
+            <tr>
+              <td>#{{ u.id }}</td>
+              <td><strong>{{ u.organization_name }}</strong> ({{ u.username }})</td>
+              <td>
+                <span class="user-badge role-{{ u.role }}">{{ _t('role_' + u.role, default=u.role) }}</span>
+              </td>
+              <td>{{ u.email }}</td>
+              <td>{{ u.phone }}</td>
+              <td>{{ u.location_area }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- All Food Donations Overview -->
+  <div style="margin-bottom: 2.5rem;">
+    <h2 style="font-size: 1.35rem; font-weight: 700; color: var(--primary-dark); margin-bottom: 1rem;">
+      🍲 {{ _t('all_listings_title') }}
+    </h2>
+    <div class="table-responsive">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Photo</th>
+            <th>Item</th>
+            <th>Donor</th>
+            <th>Quantity</th>
+            <th>Deadline</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for d in donations %}
+            <tr>
+              <td>#{{ d.id }}</td>
+              <td>
+                {% if d.image_filename %}
+                  <img src="{{ url_for('static', filename='uploads/' + d.image_filename) }}" alt="Photo" style="width: 40px; height: 30px; object-fit: cover; border-radius: 4px;">
+                {% else %}
+                  🍲
+                {% endif %}
+              </td>
+              <td><strong>{{ d.food_name }}</strong></td>
+              <td>{{ d.donor_name }}</td>
+              <td>{{ d.quantity|int }} {{ d.unit }}</td>
+              <td>{{ d.safe_use_deadline }}</td>
+              <td><span class="status-pill status-{{ d.status }}">{{ _t('status_' + d.status, default=d.status) }}</span></td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- All Delivery Missions Overview -->
+  <div style="margin-bottom: 2.5rem;">
+    <h2 style="font-size: 1.35rem; font-weight: 700; color: var(--primary-dark); margin-bottom: 1rem;">
+      🚚 Delivery Missions & Handover Tasks ({{ tasks|length }})
+    </h2>
+    <div class="table-responsive">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Task ID</th>
+            <th>Food Item</th>
+            <th>Assigned Driver</th>
+            <th>Driver Phone</th>
+            <th>Status</th>
+            <th>Recorded Handover</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if tasks %}
+            {% for t in tasks %}
+              <tr>
+                <td><strong>#{{ t.id }}</strong></td>
+                <td>{{ t.food_name }}</td>
+                <td>
+                  {% if t.volunteer_name %}
+                    <span style="font-weight: 700; color: #16a34a;">{{ t.volunteer_name }}</span>
+                  {% else %}
+                    <span style="color: #ea580c; font-style: italic;">Unassigned (Awaiting Driver)</span>
+                  {% endif %}
+                </td>
+                <td>{{ t.volunteer_phone or '-' }}</td>
+                <td>
+                  <span class="status-pill status-{{ t.status }}">{{ _t('status_' + t.status, default=t.status) }}</span>
+                </td>
+                <td style="font-size: 0.82rem; color: var(--text-muted);">
+                  {% if t.delivered_at %}
+                    Delivered: {{ t.delivered_at }}
+                  {% elif t.collected_at %}
+                    Collected: {{ t.collected_at }}
+                  {% else %}
+                    Assigned: {{ t.created_at }}
+                  {% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+          {% else %}
+            <tr>
+              <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">
+                No delivery missions created yet.
+              </td>
+            </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  // Real-time background polling for coordinator statistics
+  function pollCoordinatorStats() {
+    fetch('/api/coordinator/stats')
+      .then(res => res.json())
+      .then(data => {
+        // Can optionally highlight counters or show toast when new unassigned tasks arrive
+        console.log('Coordinator real-time update:', data);
+      })
+      .catch(err => console.log('Coordinator polling error:', err));
+  }
+  setInterval(pollCoordinatorStats, 20000);
+</script>
+{% endblock %}

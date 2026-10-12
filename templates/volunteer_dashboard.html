@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _t('volunteer_console') }} - Annam Pagirvom (அன்னம் பகிர்வோம்){% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 2.5rem 1.25rem;">
+  <div style="margin-bottom: 2rem;">
+    <h1 style="font-size: 1.85rem; font-weight: 800; color: var(--primary-dark);">
+      🚴 {{ _t('volunteer_console') }}
+    </h1>
+    <p style="color: var(--text-muted); font-size: 0.95rem;">
+      {{ _t('logged_in_as') }}: <strong>{{ current_user.organization_name }}</strong> ({{ current_user.location_area }})
+    </p>
+  </div>
+
+  <!-- Safety & Hygiene Notice for Transporters -->
+  <div class="safety-banner">
+    <div class="safety-icon">📦</div>
+    <div>
+      <strong>{{ _t('volunteer_guidelines_title') }}</strong>
+      {{ _t('volunteer_guidelines_desc') }}
+    </div>
+  </div>
+
+  <!-- Available Tasks to Accept -->
+  <div style="margin-bottom: 2.5rem;">
+    <h2 style="font-size: 1.35rem; font-weight: 700; color: var(--primary); margin-bottom: 1rem;">
+      🚀 {{ _t('unclaimed_tasks_title') }}
+    </h2>
+
+    {% if unclaimed_tasks %}
+      <div class="grid-2">
+        {% for t in unclaimed_tasks %}
+          <div class="card" style="border-left: 4px solid #7c3aed; padding: 0; overflow: hidden;">
+            {% if t.image_filename %}
+              <img src="{{ url_for('static', filename='uploads/' + t.image_filename) }}" alt="{{ t.food_name }}" class="donation-thumbnail">
+            {% endif %}
+
+            <div style="padding: 1.25rem;">
+              <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
+                <span class="status-pill status-accepted">{{ _t('awaiting_driver') }}</span>
+                <span style="font-size: 0.8rem; font-weight: 600; color: var(--text-light);">📍 {{ t.donor_area }} ➔ {{ t.receiver_area }}</span>
+              </div>
+
+              <h3 style="font-size: 1.2rem; font-weight: 700; margin-bottom: 0.25rem;">
+                {{ t.food_name }} ({{ t.quantity|int }} {{ t.unit }})
+              </h3>
+              <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.75rem;">
+                From: <strong>{{ t.donor_org }}</strong><br>
+                To: <strong>{{ t.receiver_org }}</strong>
+              </div>
+
+              <div style="background-color: var(--primary-subtle); padding: 0.75rem; border-radius: var(--radius-sm); font-size: 0.85rem; margin-bottom: 1rem;">
+                <div><strong>{{ _t('pickup_address') }}</strong> {{ t.pickup_address }}</div>
+                <div><strong>{{ _t('delivery_address') }}</strong> {{ t.delivery_address }}</div>
+                <div><strong>{{ _t('safe_deadline') }}:</strong> <span style="color: #b45309; font-weight: 600;">{{ t.safe_use_deadline }}</span></div>
+                {% if t.latitude and t.longitude %}
+                  <div style="margin-top: 4px;">
+                    <a href="https://www.openstreetmap.org/?mlat={{ t.latitude }}&mlon={{ t.longitude }}#map=16/{{ t.latitude }}/{{ t.longitude }}" target="_blank" style="font-size: 0.8rem; color: var(--primary); font-weight: 600;">
+                      🗺️ {{ _t('view_on_map') }} ({{ "%.4f"|format(t.latitude) }}, {{ "%.4f"|format(t.longitude) }})
+                    </a>
+                  </div>
+                {% endif %}
+              </div>
+
+              <form method="POST" action="{{ url_for('claim_pickup_task', task_id=t.id) }}">
+                <button type="submit" class="btn btn-primary btn-sm" style="width: 100%;">
+                  {{ _t('accept_mission') }}
+                </button>
+              </form>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div style="padding: 1.25rem; background: #ffffff; border: 1px dashed var(--border-color); border-radius: var(--radius-md); font-size: 0.9rem; color: var(--text-muted);">
+        {{ _t('no_unclaimed_missions') }}
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- My Accepted & Active Delivery Tasks -->
+  <div>
+    <h2 style="font-size: 1.35rem; font-weight: 700; color: var(--primary-dark); margin-bottom: 1rem;">
+      📋 {{ _t('my_active_missions') }}
+    </h2>
+
+    <div class="table-responsive">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>{{ _t('id') }}</th>
+            <th>{{ _t('item_category') }}</th>
+            <th>{{ _t('pickup_address') }}</th>
+            <th>{{ _t('delivery_address') }}</th>
+            <th>{{ _t('safe_deadline') }}</th>
+            <th>{{ _t('status') }}</th>
+            <th>{{ _t('handover_receipt') }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if my_tasks %}
+            {% for t in my_tasks %}
+              <tr>
+                <td><strong>#{{ t.id }}</strong></td>
+                <td>
+                  <strong>{{ t.food_name }}</strong>
+                  <div style="font-size: 0.8rem; color: var(--text-muted);">{{ t.quantity|int }} {{ t.unit }}</div>
+                  {% if t.image_filename %}
+                    <img src="{{ url_for('static', filename='uploads/' + t.image_filename) }}" alt="Photo" style="width: 45px; height: 35px; object-fit: cover; border-radius: 4px; margin-top: 2px;">
+                  {% endif %}
+                </td>
+                <td>
+                  <strong>{{ t.donor_org }}</strong>
+                  <div style="font-size: 0.75rem; color: var(--text-light);">{{ t.pickup_address }} (📞 {{ t.donor_phone }})</div>
+                  {% if t.latitude and t.longitude %}
+                    <a href="https://www.openstreetmap.org/?mlat={{ t.latitude }}&mlon={{ t.longitude }}#map=16/{{ t.latitude }}/{{ t.longitude }}" target="_blank" style="font-size: 0.75rem; color: var(--primary);">
+                      🗺️ Map Pin
+                    </a>
+                  {% endif %}
+                </td>
+                <td>
+                  <strong>{{ t.receiver_org }}</strong>
+                  <div style="font-size: 0.75rem; color: var(--text-light);">{{ t.delivery_address }} (📞 {{ t.receiver_phone }})</div>
+                </td>
+                <td style="font-size: 0.85rem; color: #b45309; font-weight: 600;">{{ t.safe_use_deadline }}</td>
+                <td>
+                  <span class="status-pill status-{{ t.task_status }}">{{ _t('status_' + t.task_status, default=t.task_status) }}</span>
+                </td>
+                <td>
+                  {% if t.task_status == 'assigned' %}
+                    <details style="background: #fdfdfd; border: 1px solid var(--border-color); border-radius: 6px; padding: 6px;">
+                      <summary style="cursor: pointer; font-size: 0.85rem; font-weight: 700; color: var(--primary);">
+                        📦 {{ _t('capture_pickup_evidence') }}
+                      </summary>
+                      <form method="POST" action="{{ url_for('mark_food_collected', task_id=t.id) }}" enctype="multipart/form-data" style="margin-top: 8px;">
+                        <div style="margin-bottom: 6px;">
+                          <label style="font-size: 0.75rem; font-weight: 600; display: block;">{{ _t('donor_staff_name') }} *</label>
+                          <input type="text" name="donor_signature" placeholder="e.g. Chef Kumar" required style="font-size: 0.8rem; padding: 4px; width: 100%;">
+                        </div>
+                        <div style="margin-bottom: 6px;">
+                          <label style="font-size: 0.75rem; font-weight: 600; display: block;">{{ _t('collected_qty_label') }} ({{ t.unit }})</label>
+                          <input type="number" name="collected_quantity" value="{{ t.quantity|int }}" step="1" min="1" style="font-size: 0.8rem; padding: 4px; width: 100%;">
+                        </div>
+                        <div style="margin-bottom: 6px;">
+                          <label style="font-size: 0.75rem; font-weight: 600; display: block;">📷 {{ _t('pickup_evidence') }}</label>
+                          <input type="file" name="pickup_photo_file" accept="image/*" capture="environment" style="font-size: 0.75rem; width: 100%;">
+                        </div>
+                        <button type="submit" class="btn btn-sm btn-primary" style="width: 100%; margin-top: 4px;">
+                          ✓ {{ _t('confirm_food_collected') }}
+                        </button>
+                      </form>
+                    </details>
+                  {% elif t.task_status == 'collected' %}
+                    <details style="background: #fdfdfd; border: 1px solid var(--border-color); border-radius: 6px; padding: 6px;">
+                      <summary style="cursor: pointer; font-size: 0.85rem; font-weight: 700; color: var(--accent);">
+                        🚚 {{ _t('capture_delivery_evidence') }}
+                      </summary>
+                      <form method="POST" action="{{ url_for('mark_food_delivered', task_id=t.id) }}" enctype="multipart/form-data" style="margin-top: 8px;">
+                        <div style="margin-bottom: 6px;">
+                          <label style="font-size: 0.75rem; font-weight: 600; display: block;">{{ _t('receiver_rep_name') }} *</label>
+                          <input type="text" name="receiver_signature" placeholder="e.g. Sister Meenakshi" required style="font-size: 0.8rem; padding: 4px; width: 100%;">
+                        </div>
+                        <div style="margin-bottom: 6px;">
+                          <label style="font-size: 0.75rem; font-weight: 600; display: block;">{{ _t('delivered_qty_label') }} ({{ t.unit }})</label>
+                          <input type="number" name="delivered_quantity" value="{{ t.quantity|int }}" step="1" min="1" style="font-size: 0.8rem; padding: 4px; width: 100%;">
+                        </div>
+                        <div style="margin-bottom: 6px;">
+                          <label style="font-size: 0.75rem; font-weight: 600; display: block;">📷 {{ _t('delivery_evidence') }}</label>
+                          <input type="file" name="delivery_photo_file" accept="image/*" capture="environment" style="font-size: 0.75rem; width: 100%;">
+                        </div>
+                        <button type="submit" class="btn btn-sm btn-accent" style="width: 100%; margin-top: 4px;">
+                          ✓ {{ _t('confirm_handover_delivered') }}
+                        </button>
+                      </form>
+                    </details>
+                  {% elif t.task_status == 'delivered' %}
+                    <span style="color: #16a34a; font-weight: 700; font-size: 0.85rem;">🛡️ {{ _t('mission_completed') }}</span>
+                  {% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+          {% else %}
+            <tr>
+              <td colspan="7" style="text-align: center; padding: 1.5rem; color: var(--text-muted);">
+                {{ _t('no_active_tasks') }}
+              </td>
+            </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

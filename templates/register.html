@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _t('register_title') }} - Annam Pagirvom (அன்னம் பகிர்வோம்){% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 3rem 1.25rem;">
+  <div class="form-card" style="max-width: 720px;">
+    <div style="text-align: center; margin-bottom: 2rem;">
+      <h1 style="font-size: 1.75rem; font-weight: 800; color: var(--primary-dark);">{{ _t('register_title') }}</h1>
+      <p style="font-size: 0.9rem; color: var(--text-muted); margin-top: 0.25rem;">
+        {{ _t('register_sub') }}
+      </p>
+    </div>
+
+    <form method="POST" action="{{ url_for('register') }}">
+      <div class="form-group">
+        <label class="form-label">{{ _t('select_role') }}</label>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem;">
+          <label style="border: 1px solid var(--border-color); padding: 0.75rem; border-radius: var(--radius-md); cursor: pointer; text-align: center;">
+            <input type="radio" name="role" value="donor" checked>
+            <div style="font-weight: 700; color: var(--primary); margin-top: 4px;">{{ _t('role_donor') }}</div>
+            <div style="font-size: 0.75rem; color: var(--text-muted);">{{ _t('role_donor_sub') }}</div>
+          </label>
+          <label style="border: 1px solid var(--border-color); padding: 0.75rem; border-radius: var(--radius-md); cursor: pointer; text-align: center;">
+            <input type="radio" name="role" value="receiver">
+            <div style="font-weight: 700; color: var(--accent); margin-top: 4px;">{{ _t('role_receiver') }}</div>
+            <div style="font-size: 0.75rem; color: var(--text-muted);">{{ _t('role_receiver_sub') }}</div>
+          </label>
+          <label style="border: 1px solid var(--border-color); padding: 0.75rem; border-radius: var(--radius-md); cursor: pointer; text-align: center;">
+            <input type="radio" name="role" value="volunteer">
+            <div style="font-weight: 700; color: #7c3aed; margin-top: 4px;">{{ _t('role_volunteer') }}</div>
+            <div style="font-size: 0.75rem; color: var(--text-muted);">{{ _t('role_volunteer_sub') }}</div>
+          </label>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="organization_name">{{ _t('org_name') }} *</label>
+          <input type="text" id="organization_name" name="organization_name" class="form-control" placeholder="e.g. Annapoorna Catering Service" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="username">{{ _t('username') }} *</label>
+          <input type="text" id="username" name="username" class="form-control" placeholder="e.g. annapoorna_chennai" required>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="email">{{ _t('email') }} *</label>
+          <input type="email" id="email" name="email" class="form-control" placeholder="contact@example.org" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="phone">{{ _t('phone') }} *</label>
+          <input type="tel" id="phone" name="phone" class="form-control" placeholder="9876543210" required>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="location_area">{{ _t('city_area') }} *</label>
+          <input type="text" id="location_area" name="location_area" class="form-control" placeholder="e.g. Guindy / T. Nagar" required>
+          <div class="form-hint">{{ _t('city_area_hint') }}</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="password">{{ _t('password') }} *</label>
+          <input type="password" id="password" name="password" class="form-control" placeholder="At least 6 characters" required>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="address">{{ _t('address') }} *</label>
+        <textarea id="address" name="address" class="form-control" rows="2" placeholder="Street, landmark, pincode" required></textarea>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="capacity_description">{{ _t('capacity_desc') }}</label>
+        <textarea id="capacity_description" name="capacity_description" class="form-control" rows="2" placeholder="{{ _t('capacity_desc_hint') }}"></textarea>
+      </div>
+
+      <button type="submit" class="btn btn-primary" style="width: 100%; padding: 0.8rem; font-size: 1rem;">
+        {{ _t('register_submit') }}
+      </button>
+    </form>
+
+    <div style="text-align: center; margin-top: 1.5rem; font-size: 0.9rem; color: var(--text-muted);">
+      {{ _t('already_registered') }} <a href="{{ url_for('login') }}" style="color: var(--primary); font-weight: 700;">{{ _t('signin_here') }}</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _t('donor_console') }} - Annam Pagirvom (அன்னம் பகிர்வோம்){% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 2.5rem 1.25rem;">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+    <div>
+      <h1 style="font-size: 1.85rem; font-weight: 800; color: var(--primary-dark);">
+        {{ _t('donor_console') }}
+      </h1>
+      <p style="color: var(--text-muted); font-size: 0.95rem;">
+        {{ _t('logged_in_as') }}: <strong>{{ current_user.organization_name }}</strong> ({{ current_user.location_area }})
+      </p>
+    </div>
+    <a href="{{ url_for('post_donation') }}" class="btn btn-primary">
+      {{ _t('post_new_batch') }}
+    </a>
+  </div>
+
+  <!-- Safety Reminder -->
+  <div class="safety-banner">
+    <div class="safety-icon">ℹ️</div>
+    <div>
+      <strong>{{ _t('donor_duty_title') }}</strong>
+      {{ _t('donor_duty_desc') }}
+    </div>
+  </div>
+
+  <!-- Active Matches Awaiting Acceptance Section -->
+  <div style="margin-bottom: 2.5rem;">
+    <h2 style="font-size: 1.35rem; font-weight: 700; color: var(--primary); margin-bottom: 1rem;">
+      🔍 {{ _t('matching_requests_title') }}
+    </h2>
+
+    {% if pending_matches %}
+      <div class="grid-2">
+        {% for m in pending_matches %}
+          <div class="card" style="border-left: 4px solid var(--accent);">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
+              <span class="match-tag">{{ _t('match_score') }}: {{ m.evaluation.match_score }}%</span>
+              <span style="font-size: 0.8rem; font-weight: 600; color: var(--text-light);">📍 {{ m.requirement.location_area }}</span>
+            </div>
+
+            <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 0.25rem;">
+              {{ m.requirement.organization_name }}
+            </h3>
+            <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.75rem;">
+              {{ _t('needs') }}: <strong>{{ m.requirement.quantity_needed|int }} {{ m.requirement.unit }}</strong> ({{ _t('serving_capacity') }}: {{ m.requirement.serving_capacity|int }})
+            </div>
+
+            <div style="background-color: var(--primary-subtle); padding: 0.75rem; border-radius: var(--radius-sm); font-size: 0.85rem; margin-bottom: 1rem;">
+              <strong>{{ _t('rule_explanation') }}</strong><br>
+              <span style="color: #065f46;">{{ m.evaluation.explanation_string }}</span>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <div style="font-size: 0.8rem; color: var(--text-light);">
+                For donation: <strong>#{{ m.donation.id }} - {{ m.donation.food_name }}</strong>
+              </div>
+              <form method="POST" action="{{ url_for('accept_match', match_id=m.match_id if m.match_id else 0) }}">
+                <input type="hidden" name="donation_id" value="{{ m.donation.id }}">
+                <input type="hidden" name="requirement_id" value="{{ m.requirement.id }}">
+                <input type="hidden" name="matched_quantity" value="{{ m.evaluation.matched_quantity }}">
+                <input type="hidden" name="explanation" value="{{ m.evaluation.explanation_string }}">
+                <button type="submit" class="btn btn-sm btn-primary">
+                  {{ _t('accept_allocate') }}
+                </button>
+              </form>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div style="padding: 1.25rem; background: #ffffff; border: 1px dashed var(--border-color); border-radius: var(--radius-md); font-size: 0.9rem; color: var(--text-muted);">
+        {{ _t('no_pending_matches') }}
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- Your Posted Donations Table -->
+  <div style="margin-bottom: 2.5rem;">
+    <h2 style="font-size: 1.35rem; font-weight: 700; color: var(--primary-dark); margin-bottom: 1rem;">
+      📋 {{ _t('your_posted_donations') }}
+    </h2>
+
+    <div class="table-responsive">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>{{ _t('id') }}</th>
+            <th>{{ _t('photo') }}</th>
+            <th>{{ _t('item_category') }}</th>
+            <th>{{ _t('portions') }}</th>
+            <th>{{ _t('safe_deadline') }}</th>
+            <th>{{ _t('pickup_window') }}</th>
+            <th>{{ _t('status') }}</th>
+            <th>{{ _t('handover_tracking') }}</th>
+            <th>{{ _t('actions') }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if donations %}
+            {% for d in donations %}
+              <tr>
+                <td><strong>#{{ d.id }}</strong></td>
+                <td>
+                  {% if d.image_filename %}
+                    <img src="{{ url_for('static', filename='uploads/' + d.image_filename) }}" alt="Food Photo" style="width: 50px; height: 40px; object-fit: cover; border-radius: 4px; border: 1px solid var(--border-color);">
+                  {% else %}
+                    <span style="font-size: 1.2rem;">🍲</span>
+                  {% endif %}
+                </td>
+                <td>
+                  <strong>{{ d.food_name }}</strong>
+                  <div style="font-size: 0.75rem; color: var(--text-muted);">{{ d.category }}</div>
+                  {% if d.latitude and d.longitude %}
+                    <a href="https://www.openstreetmap.org/?mlat={{ d.latitude }}&mlon={{ d.longitude }}#map=16/{{ d.latitude }}/{{ d.longitude }}" target="_blank" style="font-size: 0.7rem; color: var(--primary); text-decoration: underline;">
+                      📍 GPS ({{ "%.4f"|format(d.latitude) }}, {{ "%.4f"|format(d.longitude) }})
+                    </a>
+                  {% endif %}
+                </td>
+                <td>{{ d.quantity|int }} {{ d.unit }}</td>
+                <td>
+                  <span style="font-size: 0.85rem; color: #b45309; font-weight: 600;">{{ d.safe_use_deadline }}</span>
+                </td>
+                <td style="font-size: 0.85rem;">{{ d.earliest_pickup_time }}</td>
+                <td>
+                  <span class="status-pill status-{{ d.status }}">{{ _t('status_' + d.status, default=d.status) }}</span>
+                </td>
+                <td>
+                  {% if d.status == 'posted' %}
+                    <span style="font-size: 0.8rem; color: var(--text-light);">{{ _t('awaiting_match') }}</span>
+                  {% elif d.status in ['accepted', 'collected', 'delivered'] %}
+                    <span style="font-size: 0.8rem; font-weight: 600; color: var(--primary);">
+                      {{ _t('in_handover_pipeline') }} ({{ _t('status_' + d.status, default=d.status) }})
+                    </span>
+                  {% else %}
+                    <span style="font-size: 0.8rem; color: var(--text-muted);">{{ _t('status_' + d.status, default=d.status) }}</span>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if d.status == 'posted' %}
+                    <form method="POST" action="{{ url_for('cancel_donation', donation_id=d.id) }}" style="display: inline;" data-confirm="Cancel this surplus donation listing?">
+                      <button type="submit" class="btn btn-sm btn-outline" style="color: #dc2626; border-color: #fca5a5;">
+                        {{ _t('cancel') }}
+                      </button>
+                    </form>
+                  {% else %}
+                    <span style="font-size: 0.75rem; color: var(--text-light);">{{ _t('locked') }}</span>
+                  {% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+          {% else %}
+            <tr>
+              <td colspan="9" style="text-align: center; padding: 2rem; color: var(--text-muted);">
+                {{ _t('no_donations_posted') }}
+              </td>
+            </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

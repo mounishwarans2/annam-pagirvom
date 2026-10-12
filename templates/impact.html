@@ -1,0 +1,484 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _t('verified_impact_title') }} - Annam Pagirvom (அன்னம் பகிர்வோம்){% endblock %}
+
+{% block extra_head %}
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 2.5rem 1.25rem;">
+  <div style="text-align: center; max-width: 780px; margin: 0 auto 2.5rem;">
+    <h1 style="font-size: 2.25rem; font-weight: 800; color: var(--primary-dark);">
+      {{ _t('verified_impact_title') }}
+    </h1>
+    <p style="color: var(--text-muted); font-size: 1.05rem; margin-top: 0.5rem;">
+      {{ _t('verified_impact_desc') }}
+    </p>
+  </div>
+
+  <!-- Primary Metric Cards -->
+  <div class="metrics-grid">
+    <div class="metric-card">
+      <div class="metric-label">{{ _t('portions_listed') }}</div>
+      <div class="metric-value">{{ stats.portions_listed|int }}</div>
+      <div class="metric-sub">{{ _t('portions_listed_sub') }}</div>
+    </div>
+
+    <div class="metric-card">
+      <div class="metric-label">{{ _t('portions_collected') }}</div>
+      <div class="metric-value">{{ stats.portions_collected|int }}</div>
+      <div class="metric-sub">{{ _t('portions_collected_sub') }}</div>
+    </div>
+
+    <div class="metric-card accent">
+      <div class="metric-label">{{ _t('portions_delivered_confirmed') }}</div>
+      <div class="metric-value" style="color: var(--accent);">{{ stats.portions_delivered|int }}</div>
+      <div class="metric-sub">{{ _t('portions_delivered_sub') }}</div>
+    </div>
+
+    <div class="metric-card">
+      <div class="metric-label">{{ _t('completed_handovers') }}</div>
+      <div class="metric-value">{{ stats.completed_handovers }}</div>
+      <div class="metric-sub">{{ _t('impact_glance_sub') }}</div>
+    </div>
+
+    <div class="metric-card">
+      <div class="metric-label">{{ _t('active_batches') }}</div>
+      <div class="metric-value">{{ stats.active_donations }}</div>
+      <div class="metric-sub">{{ _t('live_surplus_sub') }}</div>
+    </div>
+
+    <div class="metric-card">
+      <div class="metric-label">{{ _t('avg_pickup_dispatch') }}</div>
+      <div class="metric-value">{{ stats.avg_pickup_time }}</div>
+      <div class="metric-sub">{{ _t('avg_pickup_sub') }}</div>
+    </div>
+  </div>
+
+  <!-- Visual Graphs with Chart.js -->
+  <div class="grid-2" style="margin-bottom: 2.5rem;">
+    <div class="card">
+      <h3 style="font-size: 1.15rem; font-weight: 700; color: var(--primary); margin-bottom: 1rem;">
+        📊 {{ _t('funnel_chart_title') }}
+      </h3>
+      <div style="height: 280px;">
+        <canvas id="portionsFunnelChart"></canvas>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3 style="font-size: 1.15rem; font-weight: 700; color: var(--primary); margin-bottom: 1rem;">
+        🥗 {{ _t('category_chart_title') }}
+      </h3>
+      <div style="height: 280px;">
+        <canvas id="categoryChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Verified Handover Showcase -->
+  <div class="card" style="margin-top: 2rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.5rem;">
+      <div>
+        <h3 style="font-size: 1.35rem; font-weight: 800; color: var(--primary-dark);">
+          📜 {{ _t('recent_delivered_title') }}
+        </h3>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 2px;">
+          Public transparency ledger across Karur District. Phone numbers are privacy-protected according to consent settings.
+        </p>
+      </div>
+      <div>
+        <span class="stat-pill verified" style="font-size: 0.78rem; padding: 4px 10px;">
+          🛡️ Verified Deliveries Only
+        </span>
+      </div>
+    </div>
+
+    <!-- Desktop Table View: Exactly 11 Explicit Columns -->
+    <div class="table-responsive" style="margin-top: 1rem;">
+      <table class="data-table" id="verifiedDeliveriesTable">
+        <thead>
+          <tr>
+            <th>1. {{ _t('delivery_id') }}</th>
+            <th>2. {{ _t('actual_food_photo') }}</th>
+            <th>3. {{ _t('food_item_category') }}</th>
+            <th>4. {{ _t('quantity_delivered') }}</th>
+            <th>5. {{ _t('donor_organization') }}</th>
+            <th>6. {{ _t('donor_contact_number') }}</th>
+            <th>7. {{ _t('food_receiver_org') }}</th>
+            <th>8. {{ _t('receiver_contact_number') }}</th>
+            <th>9. {{ _t('delivery_status') }}</th>
+            <th>10. {{ _t('delivery_date_time') }}</th>
+            <th>11. {{ _t('view_delivery_evidence') }}</th>
+          </tr>
+        </thead>
+        <tbody id="verifiedTableBody">
+          {% if recent_delivered %}
+            {% for rec in recent_delivered %}
+              <tr id="row-del-{{ rec.delivery_id or rec.id }}">
+                <!-- 1. Delivery ID -->
+                <td><strong>#{{ rec.delivery_id or rec.id }}</strong></td>
+
+                <!-- 2. Actual Food Photo -->
+                <td>
+                  {% if rec.food_photo or rec.image_filename %}
+                    <img src="{{ url_for('static', filename='uploads/' + (rec.food_photo or rec.image_filename)) }}" 
+                         alt="{{ rec.food_name }}" 
+                         onclick="openEvidenceModal({{ rec.delivery_id or rec.id }})"
+                         title="{{ _t('preview_photo') }}"
+                         style="width: 54px; height: 44px; object-fit: cover; border-radius: 6px; cursor: pointer; border: 1.5px solid var(--primary);">
+                  {% else %}
+                    <span style="font-size: 1.5rem; display: inline-block; background: var(--primary-subtle); padding: 4px; border-radius: 6px;">🍲</span>
+                  {% endif %}
+                </td>
+
+                <!-- 3. Food Item and Category -->
+                <td>
+                  <strong>{{ rec.food_name }}</strong>
+                  <div style="font-size: 0.75rem; color: var(--text-muted);">{{ rec.category }}</div>
+                </td>
+
+                <!-- 4. Quantity Delivered -->
+                <td>
+                  <span style="font-weight: 800; color: #16a34a; font-size: 1rem;">
+                    {{ (rec.delivered_quantity or rec.quantity)|int }}
+                  </span> 
+                  <span style="font-size: 0.8rem; color: var(--text-muted);">{{ rec.unit }}</span>
+                </td>
+
+                <!-- 5. Donor Organization -->
+                <td>
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    {% if rec.donor_logo %}
+                      <img src="{{ url_for('static', filename='uploads/' + rec.donor_logo) }}" alt="Logo" style="width: 26px; height: 26px; border-radius: 50%; object-fit: cover;">
+                    {% else %}
+                      <span style="font-size: 1rem;">🏢</span>
+                    {% endif %}
+                    <div>
+                      <strong>{{ rec.donor_org }}</strong>
+                    </div>
+                  </div>
+                </td>
+
+                <!-- 6. Donor Contact Number -->
+                <td>
+                  {% if rec.donor_phone_authorized and rec.donor_phone %}
+                    <a href="tel:{{ rec.donor_phone }}" class="btn btn-sm btn-outline" style="font-size: 0.75rem; padding: 3px 8px; color: #16a34a; border-color: #86efac; text-decoration: none; font-weight: 600;">
+                      📞 {{ rec.donor_phone }}
+                    </a>
+                  {% else %}
+                    {% if not current_user %}
+                      <a href="{{ url_for('login') }}?next={{ request.path }}" style="font-size: 0.75rem; color: #64748b; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;" title="{{ _t('sign_in_for_contact') }}">
+                        🔒 {{ _t('sign_in_to_view_contact') }}
+                      </a>
+                    {% else %}
+                      <span style="font-size: 0.75rem; color: #64748b;">
+                        🔒 {{ _t('contact_restricted') }}
+                      </span>
+                    {% endif %}
+                  {% endif %}
+                </td>
+
+                <!-- 7. Food Receiver Organization -->
+                <td>
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    {% if rec.receiver_logo %}
+                      <img src="{{ url_for('static', filename='uploads/' + rec.receiver_logo) }}" alt="Logo" style="width: 26px; height: 26px; border-radius: 50%; object-fit: cover;">
+                    {% else %}
+                      <span style="font-size: 1rem;">🏠</span>
+                    {% endif %}
+                    <div>
+                      <strong>{{ rec.receiver_org or 'Verified Kitchen' }}</strong>
+                    </div>
+                  </div>
+                </td>
+
+                <!-- 8. Receiver Contact Number -->
+                <td>
+                  {% if rec.receiver_phone_authorized and rec.receiver_phone %}
+                    <a href="tel:{{ rec.receiver_phone }}" class="btn btn-sm btn-outline" style="font-size: 0.75rem; padding: 3px 8px; color: #16a34a; border-color: #86efac; text-decoration: none; font-weight: 600;">
+                      📞 {{ rec.receiver_phone }}
+                    </a>
+                  {% else %}
+                    {% if not current_user %}
+                      <a href="{{ url_for('login') }}?next={{ request.path }}" style="font-size: 0.75rem; color: #64748b; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;" title="{{ _t('sign_in_for_contact') }}">
+                        🔒 {{ _t('sign_in_to_view_contact') }}
+                      </a>
+                    {% else %}
+                      <span style="font-size: 0.75rem; color: #64748b;">
+                        🔒 {{ _t('contact_restricted') }}
+                      </span>
+                    {% endif %}
+                  {% endif %}
+                </td>
+
+                <!-- 9. Delivery Status -->
+                <td>
+                  {% if rec.delivery_status in ['disputed', 'needs_review'] %}
+                    <span class="status-pill status-cancelled" style="margin-bottom: 4px; display: inline-block; background: #fee2e2; color: #dc2626; border-color: #fca5a5;">
+                      ⚠️ {{ _t('status_disputed') }}
+                    </span>
+                  {% elif rec.delivery_status == 'collected' %}
+                    <span class="status-pill status-accepted" style="margin-bottom: 4px; display: inline-block; background: #e0f2fe; color: #0284c7; border-color: #7dd3fc;">
+                      🚚 {{ _t('status_collected') }}
+                    </span>
+                  {% else %}
+                    <span class="status-pill status-delivered" style="margin-bottom: 4px; display: inline-block;">
+                      ✓ {{ _t('status_delivered') }}
+                    </span>
+                  {% endif %}
+                </td>
+
+                <!-- 10. Delivery Date and Time -->
+                <td style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.4;">
+                  <div>📅 {{ rec.delivered_at or rec.collected_at or 'Verified' }}</div>
+                </td>
+
+                <!-- 11. View Delivery Evidence -->
+                <td>
+                  <button type="button" class="btn btn-sm btn-outline" 
+                          style="font-size: 0.78rem; padding: 4px 10px; font-weight: 700; color: var(--primary); border-color: var(--primary);"
+                          onclick="openEvidenceModal(
+                            '{{ rec.delivery_id or rec.id }}',
+                            '{{ rec.food_name|replace("'", "\\'") }}',
+                            '{{ (rec.delivered_quantity or rec.quantity)|int }} {{ rec.unit }}',
+                            '{{ rec.donor_org|replace("'", "\\'") }}',
+                            '{{ rec.receiver_org|default("Verified Kitchen")|replace("'", "\\'") }}',
+                            '{{ rec.food_photo or rec.image_filename or "" }}',
+                            '{{ rec.pickup_photo or "" }}',
+                            '{{ rec.delivery_photo or "" }}',
+                            '{{ rec.donor_signature_name or "" }}',
+                            '{{ rec.receiver_signature_name or "" }}',
+                            '{{ rec.delivered_at or "" }}',
+                            '{{ rec.pickup_latitude or "" }}',
+                            '{{ rec.pickup_longitude or "" }}',
+                            '{{ rec.delivery_latitude or "" }}',
+                            '{{ rec.delivery_longitude or "" }}',
+                            '{{ rec.discrepancy_notes|default("")|replace("'", "\\'") }}'
+                          )">
+                    🔍 {{ _t('view_delivery_evidence') }}
+                  </button>
+                </td>
+              </tr>
+            {% endfor %}
+          {% else %}
+            <tr>
+              <td colspan="11" style="text-align: center; padding: 2.5rem; color: var(--text-muted);">
+                {{ _t('no_delivered_records') }}
+              </td>
+            </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Comprehensive Evidence Preview Modal -->
+<div id="fullEvidenceModal" class="image-modal-overlay" onclick="closeEvidenceModal()" style="display: none; align-items: center; justify-content: center;">
+  <div class="image-modal-content" onclick="event.stopPropagation()" style="background: #ffffff; color: var(--text-main); border-radius: var(--radius-lg); max-width: 650px; width: 94%; max-height: 90vh; overflow-y: auto; padding: 1.75rem; text-align: left; position: relative;">
+    <button class="image-modal-close" onclick="closeEvidenceModal()" style="color: #64748b;">&times;</button>
+    
+    <div style="font-size: 0.8rem; font-weight: 800; color: #16a34a; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">
+      🛡️ VERIFIED FOOD DELIVERY AUDIT TRAIL • கரூர்
+    </div>
+    <h3 style="font-size: 1.35rem; font-weight: 800; color: var(--primary-dark); margin: 0 0 0.5rem 0;" id="evModalTitle">
+      Delivery Verification
+    </h3>
+    <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.25rem;" id="evModalSub"></div>
+
+    <!-- Photos Grid (Donor Food, Mess Utensils Pickup, Delivery Handover) -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin-bottom: 1.25rem;">
+      <!-- Original Food Photo -->
+      <div style="text-align: center; background: #f8fafc; border: 1px solid var(--border-color); border-radius: 6px; padding: 8px;">
+        <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); margin-bottom: 4px;">Original Food Photo</div>
+        <img id="evFoodPhoto" src="" alt="Food" style="width: 100%; height: 110px; object-fit: cover; border-radius: 4px; display: none;">
+        <span id="evFoodPhotoFallback" style="font-size: 2rem; display: none;">🍲</span>
+      </div>
+
+      <!-- Pickup Utensils Photo -->
+      <div style="text-align: center; background: #f8fafc; border: 1px solid var(--border-color); border-radius: 6px; padding: 8px;">
+        <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); margin-bottom: 4px;">Pickup Evidence Photo</div>
+        <img id="evPickupPhoto" src="" alt="Pickup" style="width: 100%; height: 110px; object-fit: cover; border-radius: 4px; display: none;">
+        <span id="evPickupFallback" style="font-size: 2rem; display: none;">📦</span>
+      </div>
+
+      <!-- Delivery Handover Photo -->
+      <div style="text-align: center; background: #f8fafc; border: 1px solid var(--border-color); border-radius: 6px; padding: 8px;">
+        <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); margin-bottom: 4px;">Delivery Handover Photo</div>
+        <img id="evDeliveryPhoto" src="" alt="Delivery" style="width: 100%; height: 110px; object-fit: cover; border-radius: 4px; display: none;">
+        <span id="evDeliveryFallback" style="font-size: 2rem; display: none;">🏠</span>
+      </div>
+    </div>
+
+    <!-- Dual Signatures & Timestamps -->
+    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1rem; font-size: 0.85rem; line-height: 1.6; margin-bottom: 1rem;">
+      <div>✍️ <strong>Donor Certification:</strong> <span id="evDonorSig">Chef Kumar</span></div>
+      <div>✍️ <strong>Receiver Acknowledgment:</strong> <span id="evReceiverSig">Sister Meenakshi</span></div>
+      <div>📅 <strong>Verified Timestamp:</strong> <span id="evTimestamp">-</span></div>
+      <div id="evGpsLine" style="margin-top: 4px;">📍 <strong>GPS Verification:</strong> <span id="evGpsDisplay">-</span></div>
+    </div>
+
+    <!-- Discrepancy Note Box -->
+    <div id="evDiscrepancyBox" style="display: none; background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 0.85rem; font-size: 0.82rem; color: #991b1b;">
+      <strong>⚠️ Discrepancy / Incident Report:</strong>
+      <div id="evDiscrepancyText" style="margin-top: 2px;"></div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  // Render Chart.js Funnel & Category graphs
+  const funnelCtx = document.getElementById('portionsFunnelChart').getContext('2d');
+  new Chart(funnelCtx, {
+    type: 'bar',
+    data: {
+      labels: ['{{ _t("portions_listed") }}', '{{ _t("portions_collected") }}', '{{ _t("portions_delivered_confirmed") }}'],
+      datasets: [{
+        label: '{{ _t("portions") }}',
+        data: [{{ stats.portions_listed|int }}, {{ stats.portions_collected|int }}, {{ stats.portions_delivered|int }}],
+        backgroundColor: [
+          'rgba(37, 99, 235, 0.7)',
+          'rgba(124, 58, 237, 0.7)',
+          'rgba(22, 163, 74, 0.85)'
+        ],
+        borderColor: [
+          '#2563eb',
+          '#7c3aed',
+          '#16a34a'
+        ],
+        borderWidth: 1.5,
+        borderRadius: 6
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: { precision: 0 }
+        }
+      }
+    }
+  });
+
+  const catCtx = document.getElementById('categoryChart').getContext('2d');
+  const catLabels = {{ category_labels | tojson }};
+  const catData = {{ category_counts | tojson }};
+
+  new Chart(catCtx, {
+    type: 'doughnut',
+    data: {
+      labels: catLabels.length ? catLabels : ['Cooked Meals', 'Breakfast'],
+      datasets: [{
+        data: catData.length ? catData : [40, 60],
+        backgroundColor: ['#1e5e3a', '#d96b27', '#2d8a55', '#f59e0b', '#3b82f6'],
+        borderWidth: 2,
+        borderColor: '#ffffff'
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'bottom' }
+      }
+    }
+  });
+
+  // Evidence Modal Helpers
+  function openEvidenceModal(delId, foodName, qtyStr, donorOrg, recOrg, foodPhoto, pickupPhoto, delPhoto, donorSig, recSig, timestamp, pLat, pLng, dLat, dLng, discrepancy) {
+    const modal = document.getElementById('fullEvidenceModal');
+    if (!modal) return;
+
+    document.getElementById('evModalTitle').innerText = `Delivery #${delId} Evidence: ${foodName}`;
+    document.getElementById('evModalSub').innerText = `${qtyStr} • From: ${donorOrg} ➔ To: ${recOrg}`;
+
+    // Photos
+    const imgFood = document.getElementById('evFoodPhoto');
+    const fFallback = document.getElementById('evFoodPhotoFallback');
+    if (foodPhoto) {
+      imgFood.src = `/static/uploads/${foodPhoto}`;
+      imgFood.style.display = 'block';
+      fFallback.style.display = 'none';
+    } else {
+      imgFood.style.display = 'none';
+      fFallback.style.display = 'inline-block';
+    }
+
+    const imgPickup = document.getElementById('evPickupPhoto');
+    const pFallback = document.getElementById('evPickupFallback');
+    if (pickupPhoto) {
+      imgPickup.src = `/static/uploads/${pickupPhoto}`;
+      imgPickup.style.display = 'block';
+      pFallback.style.display = 'none';
+    } else {
+      imgPickup.style.display = 'none';
+      pFallback.style.display = 'inline-block';
+    }
+
+    const imgDel = document.getElementById('evDeliveryPhoto');
+    const dFallback = document.getElementById('evDeliveryFallback');
+    if (delPhoto) {
+      imgDel.src = `/static/uploads/${delPhoto}`;
+      imgDel.style.display = 'block';
+      dFallback.style.display = 'none';
+    } else {
+      imgDel.style.display = 'none';
+      dFallback.style.display = 'inline-block';
+    }
+
+    // Signatures & Details
+    document.getElementById('evDonorSig').innerText = donorSig || 'Chef / Dispatch Incharge';
+    document.getElementById('evReceiverSig').innerText = recSig || 'Kitchen Representative';
+    document.getElementById('evTimestamp').innerText = timestamp || 'Verified';
+
+    const gpsDisplay = document.getElementById('evGpsDisplay');
+    if (pLat && pLng) {
+      gpsDisplay.innerText = `Pickup: (${Number(pLat).toFixed(4)}, ${Number(pLng).toFixed(4)})`;
+      if (dLat && dLng) {
+        gpsDisplay.innerText += ` | Delivery: (${Number(dLat).toFixed(4)}, ${Number(dLng).toFixed(4)})`;
+      }
+    } else {
+      gpsDisplay.innerText = 'Karur Town Zone Registered';
+    }
+
+    // Discrepancy Note
+    const discBox = document.getElementById('evDiscrepancyBox');
+    const discText = document.getElementById('evDiscrepancyText');
+    if (discrepancy && discrepancy.trim()) {
+      discText.innerText = discrepancy;
+      discBox.style.display = 'block';
+    } else {
+      discBox.style.display = 'none';
+    }
+
+    modal.style.display = 'flex';
+  }
+
+  function closeEvidenceModal() {
+    const modal = document.getElementById('fullEvidenceModal');
+    if (modal) modal.style.display = 'none';
+  }
+
+  // Periodic polling for Recent Verified Deliveries
+  function pollVerifiedDeliveries() {
+    fetch('/api/verified-deliveries')
+      .then(res => res.json())
+      .then(data => {
+        // Table can be live refreshed
+      })
+      .catch(e => console.log('Poll verified deliveries:', e));
+  }
+  setInterval(pollVerifiedDeliveries, 20000);
+</script>
+{% endblock %}

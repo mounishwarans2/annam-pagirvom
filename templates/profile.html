@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _t('profile_title') }} - Annam Pagirvom (அன்னம் பகிர்வோம்){% endblock %}
+
+{% block content %}
+<div class="dark-donation-page">
+  <div class="dark-form-card" style="max-width: 840px;">
+    
+    <!-- Top Action Bar -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 0.75rem;">
+      <a href="{% if current_user.role == 'donor' %}{{ url_for('donor_dashboard') }}{% elif current_user.role == 'receiver' %}{{ url_for('receiver_dashboard') }}{% elif current_user.role == 'volunteer' %}{{ url_for('volunteer_dashboard') }}{% else %}{{ url_for('admin_dashboard') }}{% endif %}" 
+         class="btn-cyan-outline" 
+         style="padding: 0.45rem 1rem; font-size: 0.85rem; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+        ← {{ _t('back_to_dashboard') }}
+      </a>
+      
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <span style="font-size: 0.8rem; color: #9ca3af;">{{ _t('language') }}:</span>
+        <div class="lang-switcher">
+          <a href="{{ url_for('set_language', lang='ta') }}" class="lang-btn {% if session.get('lang') == 'ta' %}active{% endif %}">தமிழ்</a>
+          <a href="{{ url_for('set_language', lang='en') }}" class="lang-btn {% if session.get('lang', 'ta') == 'en' %}active{% endif %}">EN</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Page Header -->
+    <div class="dark-form-header">
+      <div style="font-size: 2.4rem; margin-bottom: 0.4rem;">🏢</div>
+      <h1 class="dark-form-title">
+        {{ _t('profile_title') }}
+      </h1>
+      <p class="dark-form-subtitle">
+        {{ _t('profile_sub') }}
+      </p>
+    </div>
+
+    <!-- Current Profile Banner -->
+    <div style="background-color: #16181d; border: 1px solid #2e333d; border-radius: 12px; padding: 1.25rem; margin-bottom: 2rem; display: flex; align-items: center; gap: 1.25rem; flex-wrap: wrap;">
+      <div style="width: 72px; height: 72px; border-radius: 50%; overflow: hidden; background: #262b32; display: flex; align-items: center; justify-content: center; border: 2px solid #06b6d4; flex-shrink: 0;">
+        {% if user.logo_filename %}
+          <img src="{{ url_for('static', filename='uploads/' + user.logo_filename) }}" alt="Logo" style="width: 100%; height: 100%; object-fit: cover;">
+        {% else %}
+          <span style="font-size: 2rem;">🏛️</span>
+        {% endif %}
+      </div>
+      <div>
+        <h2 style="font-size: 1.25rem; font-weight: 700; color: #ffffff; margin-bottom: 0.25rem;">
+          {{ user.organization_name }}
+        </h2>
+        <div style="font-size: 0.85rem; color: #9ca3af;">
+          Role: <strong style="color: #06b6d4; text-transform: uppercase;">{{ user.role }}</strong> | 
+          Area: <strong>{{ user.location_area }}</strong>
+        </div>
+      </div>
+    </div>
+
+    <form method="POST" action="{{ url_for('organization_profile') }}" enctype="multipart/form-data">
+      
+      <div class="dark-form-grid">
+        
+        <!-- Organization Name -->
+        <div class="dark-form-group">
+          <label class="dark-label" for="organization_name">
+            <span>{{ _t('donor_name_org') }}</span>
+            <span class="req">*</span>
+          </label>
+          <input type="text" id="organization_name" name="organization_name" class="dark-input" 
+                 value="{{ user.organization_name }}" required>
+        </div>
+
+        <!-- Organization Type -->
+        <div class="dark-form-group">
+          <label class="dark-label" for="organization_type">
+            <span>{{ _t('org_type') }}</span>
+          </label>
+          <select id="organization_type" name="organization_type" class="dark-select">
+            <option value="Restaurant" {% if user.organization_type == 'Restaurant' %}selected{% endif %}>{{ _t('org_restaurant') }}</option>
+            <option value="Hotel" {% if user.organization_type == 'Hotel' %}selected{% endif %}>{{ _t('org_hotel') }}</option>
+            <option value="Marriage Hall" {% if user.organization_type == 'Marriage Hall' %}selected{% endif %}>{{ _t('org_marriage_hall') }}</option>
+            <option value="College Canteen" {% if user.organization_type == 'College Canteen' %}selected{% endif %}>{{ _t('org_canteen') }}</option>
+            <option value="NGO" {% if user.organization_type == 'NGO' %}selected{% endif %}>{{ _t('req_org_type_ngo') }}</option>
+            <option value="Community Kitchen" {% if user.organization_type == 'Community Kitchen' %}selected{% endif %}>{{ _t('req_org_type_kitchen') }}</option>
+            <option value="Shelter/Orphanage" {% if user.organization_type == 'Shelter/Orphanage' %}selected{% endif %}>{{ _t('req_org_type_shelter') }}</option>
+            <option value="Charitable Trust" {% if user.organization_type == 'Charitable Trust' %}selected{% endif %}>{{ _t('req_org_type_trust') }}</option>
+            <option value="Volunteer Group" {% if user.organization_type == 'Volunteer Group' %}selected{% endif %}>Volunteer Group</option>
+            <option value="Other" {% if user.organization_type == 'Other' or not user.organization_type %}selected{% endif %}>{{ _t('org_other') }}</option>
+          </select>
+        </div>
+
+        <!-- Contact Phone -->
+        <div class="dark-form-group">
+          <label class="dark-label" for="phone">
+            <span>{{ _t('contact_number') }}</span>
+            <span class="req">*</span>
+          </label>
+          <input type="tel" id="phone" name="phone" class="dark-input" 
+                 value="{{ user.phone }}" pattern="[0-9]{10}" required>
+        </div>
+
+        <!-- Contact Email -->
+        <div class="dark-form-group">
+          <label class="dark-label" for="email">
+            <span>{{ _t('req_email_address') }}</span>
+            <span class="req">*</span>
+          </label>
+          <input type="email" id="email" name="email" class="dark-input" 
+                 value="{{ user.email }}" required>
+        </div>
+
+        <!-- Karur Area / Ward -->
+        <div class="dark-form-group">
+          <label class="dark-label" for="location_area">
+            <span>{{ _t('city_area') }}</span>
+            <span class="req">*</span>
+          </label>
+          <input type="text" id="location_area" name="location_area" class="dark-input" 
+                 value="{{ user.location_area }}" required>
+        </div>
+
+        <!-- Address -->
+        <div class="dark-form-group">
+          <label class="dark-label" for="address">
+            <span>{{ _t('pickup_address_label') }}</span>
+            <span class="req">*</span>
+          </label>
+          <input type="text" id="address" name="address" class="dark-input" 
+                 value="{{ user.address }}" required>
+        </div>
+
+        <!-- Logo / Trust Badge Upload -->
+        <div class="dark-form-group col-span-2">
+          <label class="dark-label" for="logo_file">
+            <span>{{ _t('logo_label') }}</span>
+          </label>
+          <input type="file" id="logo_file" name="logo_file" class="dark-input" accept="image/*">
+          <div class="form-hint" style="color: #9ca3af; font-size: 0.8rem; margin-top: 4px;">
+            Supported formats: PNG, JPG, JPEG, WEBP. Maximum file size: 5MB.
+          </div>
+        </div>
+
+        <!-- Capacity Description -->
+        <div class="dark-form-group col-span-2">
+          <label class="dark-label" for="capacity_description">
+            <span>Capacity & Logistics Description</span>
+          </label>
+          <textarea id="capacity_description" name="capacity_description" class="dark-textarea" rows="2"
+                    placeholder="e.g. Serves 120 elderly residents daily, equipped with commercial refrigeration.">{{ user.capacity_description or '' }}</textarea>
+        </div>
+
+        <!-- Public Privacy Consent Checkbox -->
+        <div class="dark-form-group col-span-2">
+          <div class="dark-checkbox-wrap">
+            <input type="checkbox" id="phone_public_consent" name="phone_public_consent" value="1"
+                   {% if user.phone_public_consent %}checked{% endif %}>
+            <label for="phone_public_consent" class="dark-checkbox-text">
+              <strong>{{ _t('phone_privacy_consent') }}</strong><br>
+              <span style="color: #9ca3af; font-size: 0.78rem;">
+                When checked, your verified contact number will be visible to public visitors on the Recent Verified Deliveries ledger. When unchecked, it will be privacy-masked for public viewers.
+              </span>
+            </label>
+          </div>
+        </div>
+
+      </div>
+
+      <button type="submit" class="btn-cyan" style="width: 100%; padding: 0.95rem; font-size: 1.1rem;">
+        💾 {{ _t('update_profile_btn') }}
+      </button>
+
+    </form>
+  </div>
+</div>
+{% endblock %}

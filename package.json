@@ -1,0 +1,17 @@
+{
+  "name": "annam-pagirvom",
+  "version": "1.0.0",
+  "description": "Annam Pagirvom (அன்னம் பகிர்வோம்) - Food Waste Reduction Platform (PS14)",
+  "private": true,
+  "scripts": {
+    "start": "python app.py",
+    "test": "pytest",
+    "cap:sync": "cap sync android",
+    "cap:open": "cap open android"
+  },
+  "dependencies": {
+    "@capacitor/android": "^7.0.1",
+    "@capacitor/cli": "^7.0.1",
+    "@capacitor/core": "^7.0.1"
+  }
+}

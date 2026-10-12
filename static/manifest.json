@@ -1,0 +1,58 @@
+{
+  "id": "org.annampagirvom.app",
+  "name": "Annam Pagirvom - அன்னம் பகிர்வோம்",
+  "short_name": "Annam Pagirvom",
+  "description": "Karur District Food Waste Reduction & Redistribution Platform (PS14)",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#1e5e3a",
+  "orientation": "portrait-primary",
+  "lang": "ta",
+  "categories": ["food", "social", "productivity"],
+  "icons": [
+    {
+      "src": "/static/icons/icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/static/icons/icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Live Food Board / நேரடி பலகை",
+      "short_name": "Live Board",
+      "description": "View real-time surplus food listings in Karur",
+      "url": "/live-food-board",
+      "icons": [{ "src": "/static/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Donate Food / உணவு வழங்கவும்",
+      "short_name": "Donate",
+      "description": "Post surplus food batch",
+      "url": "/donor/post",
+      "icons": [{ "src": "/static/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Request Food / உணவு கோரிக்கை",
+      "short_name": "Request",
+      "description": "Request food for trust or shelter",
+      "url": "/request-food",
+      "icons": [{ "src": "/static/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Driver Console / ஓட்டுநர் முகப்பு",
+      "short_name": "Driver",
+      "description": "Driver navigation & delivery coordination",
+      "url": "/driver/dashboard",
+      "icons": [{ "src": "/static/icons/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}

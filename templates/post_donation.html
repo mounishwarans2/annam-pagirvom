@@ -1,0 +1,420 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _t('food_donation_form_title') }} ({{ _t('food_donation_form_tamil') }}) - Annam Pagirvom{% endblock %}
+
+{% block content %}
+<div class="dark-donation-page">
+  <div class="dark-form-card">
+    
+    <!-- Top Bar with Back Link -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 0.5rem;">
+      <a href="{{ url_for('donor_dashboard') }}" class="btn-cyan-outline" style="padding: 0.4rem 0.9rem; font-size: 0.85rem; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+        ← {{ _t('back_to_dashboard') }}
+      </a>
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span style="font-size: 0.8rem; color: #9ca3af;">{{ _t('language') }}:</span>
+        <div class="lang-switcher">
+          <a href="{{ url_for('set_language', lang='ta') }}" class="lang-btn {% if session.get('lang') == 'ta' %}active{% endif %}">தமிழ்</a>
+          <a href="{{ url_for('set_language', lang='en') }}" class="lang-btn {% if session.get('lang', 'ta') == 'en' %}active{% endif %}">EN</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Centered Form Heading -->
+    <div class="dark-form-header">
+      <div style="font-size: 2.4rem; margin-bottom: 0.4rem;">🌾</div>
+      <h1 class="dark-form-title">
+        Food Donation Form / <span class="accent-cyan">உணவு நன்கொடைப் படிவம்</span>
+      </h1>
+      <p class="dark-form-subtitle">
+        {{ _t('post_donation_sub') }}
+      </p>
+    </div>
+
+    <!-- Food Safety Verification Protocol Banner -->
+    <div class="dark-safety-banner">
+      <strong>🛡️ {{ _t('mandatory_safety_title') }}</strong><br>
+      {{ _t('mandatory_safety_desc') }}
+    </div>
+
+    <form method="POST" action="{{ url_for('post_donation') }}" enctype="multipart/form-data" id="foodDonationForm">
+      
+      <!-- ================= 2-COLUMN RESPONSIVE FORM GRID ================= -->
+      <div class="dark-form-grid">
+        
+        <!-- Field 1: Donor Name / Organization -->
+        <div class="dark-form-group">
+          <label class="dark-label" for="contact_name">
+            <span>{{ _t('donor_name_org') }}</span>
+            <span class="req">*</span>
+          </label>
+          <input type="text" id="contact_name" name="contact_name" class="dark-input" 
+                 value="{{ current_user.organization_name if current_user else '' }}" 
+                 placeholder="e.g. Hotel Archana Grand / R. Kumar" required>
+        </div>
+
+        <!-- Field 2: Organization Type (Dropdown) -->
+        <div class="dark-form-group">
+          <label class="dark-label" for="organization_type">
+            <span>{{ _t('org_type') }}</span>
+            <span class="req">*</span>
+          </label>
+          <select id="organization_type" name="organization_type" class="dark-select" required>
+            <option value="" disabled selected>{{ _t('org_type_select') }}</option>
+            <option value="Restaurant">{{ _t('org_restaurant') }}</option>
+            <option value="Hotel">{{ _t('org_hotel') }}</option>
+            <option value="Marriage Hall">{{ _t('org_marriage_hall') }}</option>
+            <option value="Event Organizer">{{ _t('org_event') }}</option>
+            <option value="College Canteen">{{ _t('org_canteen') }}</option>
+            <option value="Individual">{{ _t('org_individual') }}</option>
+            <option value="Other">{{ _t('org_other') }}</option>
+          </select>
+        </div>
+
+        <!-- Field 3: Contact Number -->
+        <div class="dark-form-group">
+          <label class="dark-label" for="contact_phone">
+            <span>{{ _t('contact_number') }}</span>
+            <span class="req">*</span>
+          </label>
+          <input type="tel" id="contact_phone" name="contact_phone" class="dark-input" 
+                 value="{{ current_user.phone if current_user else '' }}" 
+                 placeholder="e.g. 9842412345" pattern="[0-9]{10}" title="Please enter a valid 10-digit mobile number" required>
+        </div>
+
+        <!-- Field 5: Food Type / Category -->
+        <div class="dark-form-group">
+          <label class="dark-label" for="category">
+            <span>{{ _t('food_type_label') }}</span>
+            <span class="req">*</span>
+          </label>
+          <select id="category" name="category" class="dark-select" required>
+            <option value="Cooked Meals">{{ _t('cat_cooked') }}</option>
+            <option value="Breakfast">{{ _t('cat_breakfast') }}</option>
+            <option value="Bakery & Snacks">{{ _t('cat_bakery') }}</option>
+            <option value="Raw Produce & Grains">{{ _t('cat_raw') }}</option>
+            <option value="Packaged Foods">{{ _t('cat_packaged') }}</option>
+          </select>
+        </div>
+
+        <!-- Food Item Name / Description (Single Line helper) -->
+        <div class="dark-form-group col-span-2">
+          <label class="dark-label" for="food_name">
+            <span>{{ _t('food_name') }}</span>
+            <span class="req">*</span>
+          </label>
+          <input type="text" id="food_name" name="food_name" class="dark-input" 
+                 placeholder="e.g. Fresh Vegetable Biryani & Mild Sambar / சூடான இட்லி & சாம்பார்" required>
+        </div>
+
+        <!-- Field 6: Quantity & Unit -->
+        <div class="dark-form-group">
+          <label class="dark-label" for="quantity">
+            <span>{{ _t('quantity_label') }}</span>
+            <span class="req">*</span>
+          </label>
+          <div style="display: flex; gap: 8px;">
+            <input type="number" id="quantity" name="quantity" min="1" step="0.5" class="dark-input" style="flex: 1;" placeholder="e.g. 40" required>
+            <select id="unit" name="unit" class="dark-select" style="width: 170px;" required>
+              <option value="portions">{{ _t('unit_portions') }}</option>
+              <option value="meal boxes">{{ _t('unit_meal_boxes') }}</option>
+              <option value="kg">{{ _t('unit_kg') }}</option>
+              <option value="packs">{{ _t('unit_packs') }}</option>
+              <option value="litres">{{ _t('unit_litres') }}</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Dietary Type Selection (Veg / Non-Veg) -->
+        <div class="dark-form-group">
+          <label class="dark-label" for="dietary_type">
+            <span>{{ _t('dietary_filter') }}</span>
+            <span class="req">*</span>
+          </label>
+          <select id="dietary_type" name="dietary_type" class="dark-select" required>
+            <option value="veg">🥬 {{ _t('dietary_veg') }}</option>
+            <option value="non_veg">🍗 {{ _t('dietary_nonveg') }}</option>
+          </select>
+        </div>
+
+        <!-- Field 4: Karur Area / Zone Selection -->
+        <div class="dark-form-group">
+          <label class="dark-label" for="location_area">
+            <span>{{ _t('city_area') }}</span>
+            <span class="req">*</span>
+          </label>
+          <input type="text" id="location_area" name="location_area" class="dark-input" 
+                 value="{{ current_user.location_area if current_user else 'Karur' }}" 
+                 placeholder="e.g. Vengamedu / Gandhigramam / Karur Town" required>
+        </div>
+
+        <!-- Field 7: Preparation Date and Time -->
+        <div class="dark-form-group">
+          <label class="dark-label" for="preparation_time">
+            <span>{{ _t('prep_date_time') }}</span>
+            <span class="req">*</span>
+          </label>
+          <input type="datetime-local" id="preparation_time" name="preparation_time" class="dark-input" required>
+          <span style="font-size: 0.75rem; color: #9ca3af; margin-top: 4px;">{{ _t('prep_time_hint') }}</span>
+        </div>
+
+        <!-- Field 8: Safe-use Deadline -->
+        <div class="dark-form-group">
+          <label class="dark-label" for="safe_use_deadline">
+            <span>{{ _t('safe_deadline_label') }}</span>
+            <span class="req">*</span>
+          </label>
+          <input type="datetime-local" id="safe_use_deadline" name="safe_use_deadline" class="dark-input" required>
+          <span style="font-size: 0.75rem; color: #f59e0b; margin-top: 4px;">{{ _t('safe_deadline_hint') }}</span>
+        </div>
+
+        <!-- Earliest Pickup Time -->
+        <div class="dark-form-group col-span-2">
+          <label class="dark-label" for="earliest_pickup_time">
+            <span>{{ _t('earliest_pickup') }}</span>
+            <span class="req">*</span>
+          </label>
+          <input type="datetime-local" id="earliest_pickup_time" name="earliest_pickup_time" class="dark-input" required>
+        </div>
+
+        <!-- Field 4: Pickup Address -->
+        <div class="dark-form-group col-span-2">
+          <label class="dark-label" for="pickup_address">
+            <span>{{ _t('pickup_address_label') }}</span>
+            <span class="req">*</span>
+          </label>
+          <textarea id="pickup_address" name="pickup_address" class="dark-textarea" rows="2" 
+                    placeholder="e.g. 45, Kovai Main Road, Vengamedu, Karur (Near Bus Stop)" required>{{ current_user.address if current_user else '' }}</textarea>
+        </div>
+
+        <!-- Google Maps Link Field -->
+        <div class="dark-form-group col-span-2">
+          <label class="dark-label" for="maps_link">
+            <span>{{ _t('maps_link') }}</span>
+          </label>
+          <input type="url" id="maps_link" name="maps_link" class="dark-input" 
+                 placeholder="e.g. https://maps.app.goo.gl/... or https://maps.google.com/?q=10.968,78.072">
+          <span style="font-size: 0.75rem; color: #9ca3af; margin-top: 4px;">
+            {{ _t('maps_link_hint') }}
+          </span>
+        </div>
+
+        <!-- Specific Pickup Instructions for Drivers -->
+        <div class="dark-form-group col-span-2">
+          <label class="dark-label" for="pickup_instructions">
+            <span>{{ _t('pickup_instructions') }}</span>
+          </label>
+          <input type="text" id="pickup_instructions" name="pickup_instructions" class="dark-input" 
+                 placeholder="e.g. Mess rear entrance, 1st floor; security gate near kitchen dispatch; containers kept ready.">
+          <span style="font-size: 0.75rem; color: #9ca3af; margin-top: 4px;">
+            Visible to assigned delivery drivers to easily locate food containers without delay.
+          </span>
+        </div>
+
+        <!-- Field 9: Storage and Handling Details -->
+        <div class="dark-form-group col-span-2">
+          <label class="dark-label" for="storage_instructions">
+            <span>{{ _t('storage_handling') }}</span>
+          </label>
+          <input type="text" id="storage_instructions" name="storage_instructions" class="dark-input" 
+                 placeholder="e.g. Packed in hot insulated steel containers; keep covered during transit.">
+        </div>
+
+        <!-- Partial Allocation Allowed Checkbox -->
+        <div class="dark-form-group col-span-2">
+          <label class="dark-checkbox-wrap" style="margin: 0;">
+            <input type="checkbox" name="partial_allocation_allowed" value="1" checked>
+            <span class="dark-checkbox-text" style="font-size: 0.9rem; color: #e2e8f0;">
+              ✓ {{ _t('partial_allowed_note') }} (Allow shelters to claim part of this batch if they cannot take all)
+            </span>
+          </label>
+        </div>
+
+        <!-- Field 10: Additional Notes -->
+        <div class="dark-form-group col-span-2">
+          <label class="dark-label" for="additional_notes">
+            <span>{{ _t('additional_notes_label') }}</span>
+          </label>
+          <textarea id="additional_notes" name="additional_notes" class="dark-textarea" rows="2" 
+                    placeholder="e.g. Prepared today for corporate lunch. Back gate accessible for small tempo/bikes."></textarea>
+        </div>
+
+      </div> <!-- /dark-form-grid -->
+
+      <!-- ================= FOOD PHOTO CAPTURE SECTION ================= -->
+      <div class="dark-section-box">
+        <h3 class="dark-section-title">
+          <span>📷</span> {{ _t('food_photo_heading') }}
+        </h3>
+        <p class="dark-section-desc">
+          {{ _t('camera_section_desc') }}
+        </p>
+
+        <!-- Live Camera Stream UI -->
+        <div id="cameraContainer" style="display: none; text-align: center;">
+          <div class="camera-preview-box" style="border: 2px solid #06b6d4;">
+            <video id="cameraVideo" class="camera-video" autoplay playsinline muted></video>
+            <canvas id="cameraCanvas" class="camera-canvas" style="display: none;"></canvas>
+          </div>
+          <div style="font-size: 0.8rem; color: #9ca3af; margin-bottom: 0.75rem;">
+            {{ _t('camera_active_note') }}
+          </div>
+        </div>
+
+        <div id="cameraError" class="text-danger" style="display: none; font-size: 0.85rem; margin-bottom: 0.75rem; text-align: center;"></div>
+
+        <!-- Camera Controls -->
+        <div style="display: flex; justify-content: center; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 1rem;">
+          <button type="button" id="startCameraBtn" class="btn-cyan" style="padding: 0.65rem 1.3rem; font-size: 0.95rem;">
+            {{ _t('open_camera_btn') }}
+          </button>
+          <button type="button" id="capturePhotoBtn" class="btn-cyan" style="display: none; padding: 0.65rem 1.3rem;">
+            📸 {{ _t('capture_photo_btn') }}
+          </button>
+          <button type="button" id="retakePhotoBtn" class="btn-cyan-outline" style="display: none; padding: 0.65rem 1.3rem;">
+            🔄 {{ _t('retake_photo_btn') }}
+          </button>
+          <button type="button" id="usePhotoBtn" class="btn-cyan" style="display: none; padding: 0.65rem 1.3rem;">
+            {{ _t('use_photo_btn') }}
+          </button>
+        </div>
+
+        <!-- Hidden input for captured base64 camera image -->
+        <input type="hidden" name="captured_image_base64" id="captured_image_base64">
+
+        <!-- Captured Photo Preview Container -->
+        <div id="photoPreview" style="display: none; text-align: center;">
+          <span class="match-tag" style="background:#083344; color:#22d3ee; border-color:#0891b2; margin-bottom: 8px;">
+            ✓ {{ _t('photo_captured_badge') }}
+          </span>
+          <img id="photoPreviewImg" class="dark-captured-img" alt="Captured Food Container Preview">
+          <button type="button" id="removePhotoBtn" class="btn-cyan-outline" style="color: #f87171; border-color: #ef4444; padding: 0.35rem 0.8rem; font-size: 0.85rem; margin-top: 6px;">
+            {{ _t('remove_photo_btn') }}
+          </button>
+        </div>
+
+        <!-- Optional Mobile Gallery Upload Fallback -->
+        <div style="margin-top: 1.25rem; border-top: 1px dashed #374151; padding-top: 0.85rem; text-align: center;">
+          <label class="dark-label" for="food_image_file" style="font-size: 0.82rem; color: #9ca3af; justify-content: center;">
+            {{ _t('camera_mobile_fallback') }}
+          </label>
+          <input type="file" id="food_image_file" name="food_image_file" 
+                 accept="image/jpeg,image/png,image/webp" capture="environment" 
+                 class="dark-input" style="max-width: 400px; margin: 0.4rem auto; font-size: 0.85rem;">
+        </div>
+      </div>
+
+      <!-- ================= PICKUP LOCATION / GPS SECTION ================= -->
+      <div class="dark-section-box">
+        <h3 class="dark-section-title">
+          <span>📍</span> {{ _t('pickup_location_heading') }}
+        </h3>
+        <p class="dark-section-desc">
+          {{ _t('gps_section_desc') }}
+        </p>
+
+        <div style="text-align: center; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
+          <button type="button" id="captureGpsBtn" class="btn-cyan-outline" style="padding: 0.65rem 1.4rem;">
+            {{ _t('capture_my_location_btn') }}
+          </button>
+          <button type="button" id="chooseOnMapBtn" class="btn-cyan-outline" style="padding: 0.65rem 1.4rem;" onclick="toggleMapPresets()">
+            🗺️ {{ _t('choose_on_map') }}
+          </button>
+        </div>
+
+        <!-- Karur Landmarks Preset Picker -->
+        <div id="karurPresetPicker" style="display: none; background: #1e293b; border: 1px solid #38bdf8; border-radius: 8px; padding: 12px; margin-top: 12px; text-align: left;">
+          <div style="font-size: 0.82rem; font-weight: 700; color: #38bdf8; margin-bottom: 6px;">
+            Select Karur Landmark / கரூர் முக்கிய இடத்தைத் தேர்ந்தெடுக்கவும்:
+          </div>
+          <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+            <button type="button" class="btn-cyan-outline" style="font-size: 0.75rem; padding: 4px 8px;" onclick="applyCoords(10.9601, 78.0766, 'Karur Bus Stand Area')">Karur Bus Stand</button>
+            <button type="button" class="btn-cyan-outline" style="font-size: 0.75rem; padding: 4px 8px;" onclick="applyCoords(10.9680, 78.0720, 'Vengamedu, Karur')">Vengamedu</button>
+            <button type="button" class="btn-cyan-outline" style="font-size: 0.75rem; padding: 4px 8px;" onclick="applyCoords(10.9320, 78.0840, 'Thanthonimalai, Karur')">Thanthonimalai</button>
+            <button type="button" class="btn-cyan-outline" style="font-size: 0.75rem; padding: 4px 8px;" onclick="applyCoords(10.9520, 78.0840, 'Gandhigramam, Karur')">Gandhigramam</button>
+            <button type="button" class="btn-cyan-outline" style="font-size: 0.75rem; padding: 4px 8px;" onclick="applyCoords(10.9360, 78.4180, 'Kulithalai, Karur')">Kulithalai</button>
+          </div>
+        </div>
+
+        <div id="gpsStatus" style="display: none; font-size: 0.85rem; margin-top: 0.75rem; text-align: center;"></div>
+
+        <!-- GPS Coordinates Display Panel -->
+        <div id="gpsBadge" class="dark-gps-badge" style="display: none; max-width: 520px; margin: 0.85rem auto; text-align: left;">
+          <div style="font-weight: 700; color: #38bdf8; margin-bottom: 4px;">{{ _t('gps_captured_badge') }}</div>
+          <div style="font-size: 0.82rem; color: #94a3b8; line-height: 1.6;">
+            • {{ _t('gps_lat') }}: <strong id="gpsLatDisplay" style="color: #e2e8f0;">-</strong><br>
+            • {{ _t('gps_lng') }}: <strong id="gpsLngDisplay" style="color: #e2e8f0;">-</strong><br>
+            • {{ _t('gps_accuracy') }}: <span id="gpsAccDisplay">-</span>
+          </div>
+          <div style="margin-top: 6px;">
+            <a id="osmMapLink" href="#" target="_blank" style="font-size: 0.82rem; color: #38bdf8; text-decoration: underline; font-weight: 600;">
+              🗺️ {{ _t('view_on_map') }}
+            </a>
+          </div>
+        </div>
+
+        <!-- Hidden coordinates submitted with form -->
+        <input type="hidden" name="latitude" id="latitude">
+        <input type="hidden" name="longitude" id="longitude">
+        <input type="hidden" name="location_accuracy" id="location_accuracy">
+      </div>
+
+      <!-- Mandatory Safety Checkbox -->
+      <label class="dark-checkbox-wrap">
+        <input type="checkbox" name="safety_verification" value="1" required>
+        <span class="dark-checkbox-text">
+          {{ _t('safety_checkbox') }}
+        </span>
+      </label>
+
+      <!-- Primary Cyan Submit Button -->
+      <button type="submit" class="btn-cyan" style="width: 100%; padding: 1rem; font-size: 1.15rem; letter-spacing: 0.02em;">
+        {{ _t('submit_donation_btn') }}
+      </button>
+
+    </form>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  function toggleMapPresets() {
+    const p = document.getElementById('karurPresetPicker');
+    if (p) p.style.display = (p.style.display === 'none' ? 'block' : 'none');
+  }
+
+  function applyCoords(lat, lng, label) {
+    document.getElementById('latitude').value = lat;
+    document.getElementById('longitude').value = lng;
+    document.getElementById('location_accuracy').value = '10.0';
+
+    const latDisplay = document.getElementById('gpsLatDisplay');
+    const lngDisplay = document.getElementById('gpsLngDisplay');
+    const accDisplay = document.getElementById('gpsAccDisplay');
+    const badge = document.getElementById('gpsBadge');
+    const mapLink = document.getElementById('osmMapLink');
+
+    if (latDisplay) latDisplay.textContent = lat;
+    if (lngDisplay) lngDisplay.textContent = lng;
+    if (accDisplay) accDisplay.textContent = '10.0 m (Karur Landmark: ' + label + ')';
+    if (badge) badge.style.display = 'block';
+    if (mapLink) {
+      mapLink.href = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+      mapLink.style.display = 'inline-block';
+    }
+
+    const mapsInput = document.getElementById('maps_link');
+    if (mapsInput && !mapsInput.value) {
+      mapsInput.value = `https://maps.google.com/?q=${lat},${lng}`;
+    }
+
+    const picker = document.getElementById('karurPresetPicker');
+    if (picker) picker.style.display = 'none';
+
+    const status = document.getElementById('gpsStatus');
+    if (status) {
+      status.textContent = '✓ Landmark Selected: ' + label;
+      status.style.display = 'block';
+    }
+  }
+</script>
+{% endblock %}

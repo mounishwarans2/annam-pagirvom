@@ -1,0 +1,282 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _t('request_food_title') }} - Annam Pagirvom (அன்னம் பகிர்வோம்){% endblock %}
+
+{% block content %}
+<div class="dark-donation-page">
+  <div class="dark-form-card">
+    
+    <!-- Top Action Bar -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 0.75rem;">
+      <a href="{{ url_for('receiver_dashboard') if current_user and current_user.role in ['receiver', 'admin'] else url_for('index') }}" 
+         class="btn-cyan-outline" 
+         style="padding: 0.45rem 1rem; font-size: 0.85rem; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+        ← {{ _t('back_to_dashboard') if current_user and current_user.role in ['receiver', 'admin'] else _t('home') }}
+      </a>
+      
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <span style="font-size: 0.8rem; color: #9ca3af;">{{ _t('language') }}:</span>
+        <div class="lang-switcher">
+          <a href="{{ url_for('set_language', lang='ta') }}" class="lang-btn {% if session.get('lang') == 'ta' %}active{% endif %}">தமிழ்</a>
+          <a href="{{ url_for('set_language', lang='en') }}" class="lang-btn {% if session.get('lang', 'ta') == 'en' %}active{% endif %}">EN</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Page Header -->
+    <div class="dark-form-header">
+      <div style="font-size: 2.5rem; margin-bottom: 0.4rem;">🍲</div>
+      <h1 class="dark-form-title">
+        Request Food / <span class="accent-cyan">{{ _t('request_food_tamil') }}</span>
+      </h1>
+      <p class="dark-form-subtitle" style="max-width: 680px; margin: 0.5rem auto 0; line-height: 1.5;">
+        {{ _t('request_food_desc') }}
+      </p>
+    </div>
+
+    <!-- ================= IMPACT STATISTICS CARDS ================= -->
+    <!-- Distinguishes verified database records from illustrative target demo metrics -->
+    <div class="dark-stats-grid">
+      <!-- Card 1: Meals Delivered -->
+      <div class="dark-stat-card">
+        <div class="dark-stat-val">
+          {{ stats.portions_delivered|int if stats and stats.portions_delivered else 60 }}+
+        </div>
+        <div class="dark-stat-title">{{ _t('impact_stat_meals') }}</div>
+        <div>
+          <span class="stat-pill verified">✓ {{ _t('stat_verified_db') }}</span>
+        </div>
+        <div class="dark-stat-note">
+          1000+ {{ _t('stat_illustrative_note') }}
+        </div>
+      </div>
+
+      <!-- Card 2: Organizations Helped -->
+      <div class="dark-stat-card">
+        <div class="dark-stat-val">
+          {{ stats.total_orgs if stats and stats.total_orgs else 4 }}+
+        </div>
+        <div class="dark-stat-title">{{ _t('impact_stat_orgs') }}</div>
+        <div>
+          <span class="stat-pill verified">✓ {{ _t('stat_verified_db') }}</span>
+        </div>
+        <div class="dark-stat-note">
+          30+ {{ _t('stat_illustrative_note') }}
+        </div>
+      </div>
+
+      <!-- Card 3: Cities / Areas Covered -->
+      <div class="dark-stat-card">
+        <div class="dark-stat-val">
+          {{ stats.total_areas if stats and stats.total_areas else 4 }} Wards
+        </div>
+        <div class="dark-stat-title">{{ _t('impact_stat_cities') }}</div>
+        <div>
+          <span class="stat-pill verified">✓ Karur District</span>
+        </div>
+        <div class="dark-stat-note">
+          25+ {{ _t('stat_illustrative_note') }}
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= EMERGENCY FOOD REQUEST SECTION ================= -->
+    <div class="dark-emergency-banner">
+      <div class="emergency-content">
+        <div class="emergency-badge">
+          🚨 {{ _t('emergency_panel_title') }}
+        </div>
+        <div class="emergency-title">
+          {{ _t('emergency_panel_desc') }}
+        </div>
+        <div class="emergency-desc">
+          For critical food emergencies across Karur, call our priority coordination line. Note: Operational during volunteer active hours.
+        </div>
+      </div>
+      <div class="emergency-cta">
+        <a href="tel:+918098016330" class="emergency-phone-btn">
+          📞 {{ _t('emergency_phone_display') }}
+        </a>
+      </div>
+    </div>
+
+    <!-- ================= FOOD REQUEST FORM ================= -->
+    <form method="POST" action="{{ url_for('post_requirement') }}" id="foodRequestForm">
+      
+      <div class="dark-form-grid">
+        
+        <!-- Field 1: Organization Name -->
+        <div class="dark-form-group">
+          <label class="dark-label" for="organization_name">
+            <span>{{ _t('req_org_name') }}</span>
+            <span class="req">*</span>
+          </label>
+          <input type="text" id="organization_name" name="organization_name" class="dark-input"
+                 value="{{ current_user.organization_name if current_user else '' }}"
+                 placeholder="e.g. Anbu Illam Destitute Home / Karur Community Kitchen" required>
+        </div>
+
+        <!-- Field 2: Organization Type -->
+        <div class="dark-form-group">
+          <label class="dark-label" for="organization_type">
+            <span>{{ _t('req_org_type') }}</span>
+            <span class="req">*</span>
+          </label>
+          <select id="organization_type" name="organization_type" class="dark-select" required>
+            <option value="" disabled {% if not current_user or not current_user.organization_type %}selected{% endif %}>
+              -- {{ _t('org_type_select') }} --
+            </option>
+            <option value="NGO" {% if current_user and current_user.organization_type == 'NGO' %}selected{% endif %}>
+              {{ _t('req_org_type_ngo') }}
+            </option>
+            <option value="Community Kitchen" {% if current_user and current_user.organization_type == 'Community Kitchen' %}selected{% endif %}>
+              {{ _t('req_org_type_kitchen') }}
+            </option>
+            <option value="Shelter/Orphanage" {% if current_user and current_user.organization_type == 'Shelter/Orphanage' %}selected{% endif %}>
+              {{ _t('req_org_type_shelter') }}
+            </option>
+            <option value="Charitable Trust" {% if current_user and current_user.organization_type == 'Charitable Trust' %}selected{% endif %}>
+              {{ _t('req_org_type_trust') }}
+            </option>
+            <option value="Other" {% if current_user and current_user.organization_type == 'Other' %}selected{% endif %}>
+              {{ _t('req_org_type_other') }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Field 3: Contact Person -->
+        <div class="dark-form-group">
+          <label class="dark-label" for="contact_name">
+            <span>{{ _t('req_contact_person') }}</span>
+            <span class="req">*</span>
+          </label>
+          <input type="text" id="contact_name" name="contact_name" class="dark-input"
+                 value="{{ current_user.username if current_user else '' }}"
+                 placeholder="e.g. Meenakshi Ammal / K. Rajan" required>
+        </div>
+
+        <!-- Field 4: Contact Number -->
+        <div class="dark-form-group">
+          <label class="dark-label" for="contact_phone">
+            <span>{{ _t('req_contact_number') }}</span>
+            <span class="req">*</span>
+          </label>
+          <input type="tel" id="contact_phone" name="contact_phone" class="dark-input"
+                 value="{{ current_user.phone if current_user else '' }}"
+                 placeholder="e.g. 9443156789" pattern="[0-9]{10}"
+                 title="Please enter a valid 10-digit mobile number" required>
+        </div>
+
+        <!-- Field 5: Email Address (Optional) -->
+        <div class="dark-form-group">
+          <label class="dark-label" for="email">
+            <span>{{ _t('req_email_address') }}</span>
+          </label>
+          <input type="email" id="email" name="email" class="dark-input"
+                 value="{{ current_user.email if current_user else '' }}"
+                 placeholder="e.g. coordinator@anbuillam.org">
+        </div>
+
+        <!-- Field 7: Number of People -->
+        <div class="dark-form-group">
+          <label class="dark-label" for="quantity_needed">
+            <span>{{ _t('req_num_people') }}</span>
+            <span class="req">*</span>
+          </label>
+          <input type="number" id="quantity_needed" name="quantity_needed" class="dark-input"
+                 min="1" step="1" placeholder="e.g. 50" required>
+        </div>
+
+        <!-- Field 8: Urgency Level -->
+        <div class="dark-form-group">
+          <label class="dark-label" for="urgency_level">
+            <span>{{ _t('req_urgency_level') }}</span>
+            <span class="req">*</span>
+          </label>
+          <select id="urgency_level" name="urgency_level" class="dark-select" required>
+            <option value="Normal">{{ _t('urgency_normal') }}</option>
+            <option value="Urgent (today)" selected>{{ _t('urgency_urgent_today') }}</option>
+            <option value="Emergency">{{ _t('urgency_emergency') }}</option>
+          </select>
+        </div>
+
+        <!-- Field 9: Preferred Time -->
+        <div class="dark-form-group">
+          <label class="dark-label" for="preferred_time">
+            <span>{{ _t('req_preferred_time') }}</span>
+          </label>
+          <select id="preferred_time" name="preferred_time" class="dark-select">
+            <option value="ASAP">{{ _t('time_asap') }}</option>
+            <option value="Morning">{{ _t('time_morning') }}</option>
+            <option value="Afternoon" selected>{{ _t('time_afternoon') }}</option>
+            <option value="Evening">{{ _t('time_evening') }}</option>
+            <option value="Flexible">{{ _t('time_flexible') }}</option>
+          </select>
+        </div>
+
+        <!-- Preferred Category (for matching compatibility) -->
+        <div class="dark-form-group">
+          <label class="dark-label" for="preferred_category">
+            <span>{{ _t('category') }}</span>
+            <span class="req">*</span>
+          </label>
+          <select id="preferred_category" name="preferred_category" class="dark-select" required>
+            <option value="Cooked Meals" selected>{{ _t('cat_cooked') }}</option>
+            <option value="Breakfast">{{ _t('cat_breakfast') }}</option>
+            <option value="Bakery & Snacks">{{ _t('cat_bakery') }}</option>
+            <option value="Raw Produce & Grains">{{ _t('cat_raw') }}</option>
+            <option value="Packaged Foods">{{ _t('cat_packaged') }}</option>
+            <option value="Any">{{ _t('cat_any') }}</option>
+          </select>
+        </div>
+
+        <!-- Karur Ward / Area -->
+        <div class="dark-form-group">
+          <label class="dark-label" for="location_area">
+            <span>{{ _t('city_area') }}</span>
+            <span class="req">*</span>
+          </label>
+          <input type="text" id="location_area" name="location_area" class="dark-input"
+                 value="{{ current_user.location_area if current_user else 'Karur Town' }}"
+                 placeholder="e.g. Gandhigramam / Vengamedu / Thanthonimalai" required>
+        </div>
+
+        <!-- Field 6: Delivery Address -->
+        <div class="dark-form-group col-span-2">
+          <label class="dark-label" for="delivery_address">
+            <span>{{ _t('req_delivery_address') }}</span>
+            <span class="req">*</span>
+          </label>
+          <textarea id="delivery_address" name="delivery_address" class="dark-textarea" rows="2"
+                    placeholder="e.g. 12, Trichy Main Road, Near Gandhigramam Bus Stop, Karur" required>{{ current_user.address if current_user else '' }}</textarea>
+        </div>
+
+        <!-- Field 10: Dietary Restrictions / Preferences -->
+        <div class="dark-form-group col-span-2">
+          <label class="dark-label" for="dietary_restrictions">
+            <span>{{ _t('req_dietary_restrictions') }}</span>
+          </label>
+          <input type="text" id="dietary_restrictions" name="dietary_restrictions" class="dark-input"
+                 placeholder="{{ _t('req_dietary_placeholder') }}">
+        </div>
+
+        <!-- Field 11: Additional Information -->
+        <div class="dark-form-group col-span-2">
+          <label class="dark-label" for="additional_info">
+            <span>{{ _t('req_additional_info') }}</span>
+          </label>
+          <textarea id="additional_info" name="additional_info" class="dark-textarea" rows="2"
+                    placeholder="{{ _t('req_additional_placeholder') }}"></textarea>
+        </div>
+
+      </div>
+
+      <!-- Field 12: Submit Button -->
+      <button type="submit" class="btn-cyan" style="width: 100%; padding: 1rem; font-size: 1.15rem; margin-top: 1rem;">
+        {{ _t('submit_request_btn') }}
+      </button>
+
+    </form>
+  </div>
+</div>
+{% endblock %}

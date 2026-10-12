@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _t('signin_title') }} - Annam Pagirvom (அன்னம் பகிர்வோம்){% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 3rem 1.25rem;">
+  <div class="form-card">
+    <div style="text-align: center; margin-bottom: 2rem;">
+      <div style="font-size: 2.2rem; margin-bottom: 0.5rem;">🌾</div>
+      <h1 style="font-size: 1.75rem; font-weight: 800; color: var(--primary-dark);">{{ _t('signin_title') }}</h1>
+      <p style="font-size: 0.9rem; color: var(--text-muted); margin-top: 0.25rem;">
+        {{ _t('signin_sub') }}
+      </p>
+    </div>
+
+    <!-- Quick Partner Access Panel -->
+    <div style="background-color: var(--primary-subtle); border-radius: var(--radius-md); padding: 0.85rem 1rem; margin-bottom: 1.5rem; border: 1px solid rgba(30, 94, 58, 0.2);">
+      <div style="font-size: 0.75rem; font-weight: 700; color: var(--primary); text-transform: uppercase; margin-bottom: 0.4rem;">
+        {{ _t('demo_creds_title') }}
+      </div>
+      <div style="display: flex; gap: 0.4rem; flex-wrap: wrap;">
+        <button type="button" class="btn btn-sm btn-outline btn-demo-fill" data-username="donor_hotel" data-password="Donor@123">
+          Hotel: Vengamedu
+        </button>
+        <button type="button" class="btn btn-sm btn-outline btn-demo-fill" data-username="receiver_kitchen" data-password="Receiver@123">
+          Shelter: Gandhigramam
+        </button>
+        <button type="button" class="btn btn-sm btn-outline btn-demo-fill" data-username="volunteer_saravanan" data-password="Volunteer@123">
+          Volunteer: Karur City
+        </button>
+        <button type="button" class="btn btn-sm btn-outline btn-demo-fill" data-username="admin_user" data-password="Admin@123">
+          District Coordinator
+        </button>
+      </div>
+    </div>
+
+    <form method="POST" action="{{ url_for('login') }}">
+      <div class="form-group">
+        <label class="form-label" for="username">{{ _t('username_email') }}</label>
+        <input type="text" id="username" name="username" class="form-control" placeholder="e.g. donor_hotel" required autofocus>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="password">{{ _t('password') }}</label>
+        <input type="password" id="password" name="password" class="form-control" placeholder="••••••••" required>
+      </div>
+
+      <button type="submit" class="btn btn-primary" style="width: 100%; padding: 0.75rem; margin-top: 0.5rem;">
+        {{ _t('signin_submit') }}
+      </button>
+    </form>
+
+    <div style="text-align: center; margin-top: 1.5rem; font-size: 0.9rem; color: var(--text-muted);">
+      {{ _t('no_account') }} <a href="{{ url_for('register') }}" style="color: var(--primary); font-weight: 700;">{{ _t('join_as') }}</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

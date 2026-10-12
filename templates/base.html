@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="{{ session.get('lang', 'ta') }}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}{{ _t('app_name') }} ({{ _t('app_tamil') }}) - {{ _t('tagline') }}{% endblock %}</title>
+  
+  <!-- PWA Meta Tags & Manifest -->
+  <link rel="manifest" href="/static/manifest.json">
+  <meta name="theme-color" content="#1e5e3a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Annam Pagirvom">
+  <link rel="apple-touch-icon" href="/static/icons/icon-192.png">
+
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Mukta+Malar:wght@400;600;700;800&display=swap" rel="stylesheet">
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+  <!-- Top Navigation Bar -->
+  <nav class="navbar">
+    <div class="container nav-container">
+      <a href="{{ url_for('index') }}" class="brand-link">
+        <div class="brand-icon">🌾</div>
+        <div class="brand-text">
+          <div class="brand-title">
+            Annam Pagirvom <span class="brand-tamil tamil-text">அன்னம் பகிர்வோம்</span>
+          </div>
+          <div class="brand-tagline">{{ _t('tagline') }}</div>
+        </div>
+      </a>
+
+      <!-- Language Switcher & Mobile Menu Toggle Button -->
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <div class="lang-switcher">
+          <a href="{{ url_for('set_language', lang='ta') }}" class="lang-btn {% if session.get('lang') == 'ta' %}active{% endif %}">தமிழ்</a>
+          <a href="{{ url_for('set_language', lang='en') }}" class="lang-btn {% if session.get('lang', 'ta') == 'en' %}active{% endif %}">EN</a>
+        </div>
+        <button id="pwaInstallBtn" class="btn btn-sm btn-outline" style="display:none; padding: 2px 8px; font-size: 0.75rem;">
+          📱 {{ _t('install_app') }}
+        </button>
+        <button class="mobile-toggle" id="mobileMenuToggle" aria-label="Toggle Navigation">
+          ☰
+        </button>
+      </div>
+
+      <ul class="nav-menu">
+        <li><a href="{{ url_for('index') }}" class="nav-link">{{ _t('home') }}</a></li>
+        <li><a href="{{ url_for('live_food_board') }}" class="nav-link" style="color: var(--primary); font-weight: 700;">🍲 {{ _t('live_food_board') }}</a></li>
+        <li><a href="{{ url_for('impact') }}" class="nav-link">{{ _t('impact_dashboard') }}</a></li>
+
+        {% if session.get('user_id') %}
+          {% if session.get('role') == 'donor' %}
+            <li><a href="{{ url_for('donor_dashboard') }}" class="nav-link">{{ _t('donor_dashboard') }}</a></li>
+            <li><a href="{{ url_for('post_donation') }}" class="btn btn-sm btn-primary">+ {{ _t('donate_food') }}</a></li>
+          {% elif session.get('role') == 'receiver' %}
+            <li><a href="{{ url_for('receiver_dashboard') }}" class="nav-link">{{ _t('receiver_dashboard') }}</a></li>
+            <li><a href="{{ url_for('post_requirement') }}" class="btn btn-sm btn-accent">+ {{ _t('find_food') }}</a></li>
+          {% elif session.get('role') in ['volunteer', 'driver'] %}
+            <li><a href="{{ url_for('driver_dashboard') }}" class="nav-link">🚚 {{ _t('driver_dashboard') }}</a></li>
+          {% elif session.get('role') in ['admin', 'coordinator'] %}
+            <li><a href="{{ url_for('driver_dashboard') }}" class="nav-link">🚚 {{ _t('driver_dashboard') }}</a></li>
+            <li><a href="{{ url_for('coordinator_dashboard') }}" class="nav-link">🎯 {{ _t('coordinator_console', default='Coordinator Console') }}</a></li>
+          {% endif %}
+
+          <li>
+            <a href="{{ url_for('organization_profile') }}" class="nav-link">
+              ⚙️ {{ _t('profile') }}
+            </a>
+          </li>
+          <li>
+            <a href="{{ url_for('organization_profile') }}" style="text-decoration: none;">
+              <span class="user-badge role-{{ session.get('role') }}">
+                {{ _t('role_' + session.get('role'), default=session.get('role')) }} | {{ session.get('username') }}
+              </span>
+            </a>
+          </li>
+          <li><a href="{{ url_for('logout') }}" class="btn btn-sm btn-outline">{{ _t('sign_out') }}</a></li>
+        {% else %}
+          <li><a href="{{ url_for('login') }}" class="nav-link">{{ _t('sign_in') }}</a></li>
+          <li><a href="{{ url_for('register') }}" class="btn btn-sm btn-primary">{{ _t('join_platform') }}</a></li>
+        {% endif %}
+      </ul>
+    </div>
+  </nav>
+
+  <!-- Offline / Online Network Status Banner -->
+  <div id="networkStatusBanner" class="network-status-banner" style="display: none;"></div>
+
+  <!-- Flash Messages Banner -->
+  <div class="container flash-container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="flash-message flash-{{ category }}">
+            <span>{{ message }}</span>
+            <button onclick="this.parentElement.remove()" style="background:none;border:none;cursor:pointer;font-weight:bold;color:inherit;">✕</button>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+  </div>
+
+  <!-- Main Content Container -->
+  <main style="flex: 1 0 auto;">
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container footer-grid">
+      <div>
+        <div style="font-weight: 800; font-size: 1.15rem; color: var(--primary); margin-bottom: 0.5rem;">
+          {{ _t('app_name') }} <span class="tamil-text" style="color:var(--accent);font-size:0.95rem;">({{ _t('app_tamil') }})</span>
+        </div>
+        <p style="margin-bottom: 0.75rem; color: var(--text-muted);">
+          {{ _t('problem_statement') }}
+        </p>
+        <p style="font-size: 0.85rem; color: var(--text-light); line-height: 1.5;">
+          {{ _t('footer_about') }}
+        </p>
+      </div>
+      <div>
+        <h4 style="color: var(--text-main); margin-bottom: 0.75rem; font-size: 0.95rem;">{{ _t('quick_nav') }}</h4>
+        <ul style="list-style: none; line-height: 2; font-size: 0.9rem;">
+          <li><a href="{{ url_for('index') }}" style="color: inherit; text-decoration: none;">{{ _t('home') }}</a></li>
+          <li><a href="{{ url_for('live_food_board') }}" style="color: inherit; text-decoration: none;">🍲 {{ _t('live_food_board') }}</a></li>
+          <li><a href="{{ url_for('driver_dashboard') }}" style="color: inherit; text-decoration: none;">🚚 {{ _t('driver_dashboard') }}</a></li>
+          <li><a href="{{ url_for('impact') }}" style="color: inherit; text-decoration: none;">{{ _t('impact_dashboard') }}</a></li>
+          <li><a href="{{ url_for('login') }}" style="color: inherit; text-decoration: none;">{{ _t('sign_in') }}</a></li>
+          <li><a href="{{ url_for('register') }}" style="color: inherit; text-decoration: none;">{{ _t('join_platform') }}</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4 style="color: var(--text-main); margin-bottom: 0.75rem; font-size: 0.95rem;">{{ _t('charter_title') }}</h4>
+        <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.5;">
+          {{ _t('charter_1') }}<br>
+          {{ _t('charter_2') }}<br>
+          {{ _t('charter_3') }}
+        </p>
+      </div>
+    </div>
+    <div class="container footer-bottom">
+      {{ _t('footer_copy') }}
+    </div>
+  </footer>
+
+  <!-- Mobile Bottom Navigation (Native Android App Bar) -->
+  <nav class="mobile-bottom-nav" aria-label="Mobile Navigation">
+    <a href="{{ url_for('index') }}" class="mobile-nav-item {% if request.path == '/' %}active{% endif %}">
+      <span class="mobile-nav-icon">🏠</span>
+      <span class="mobile-nav-label">{{ _t('home') }}</span>
+    </a>
+    <a href="{{ url_for('live_food_board') }}" class="mobile-nav-item {% if '/live' in request.path %}active{% endif %}">
+      <span class="mobile-nav-icon">🍲</span>
+      <span class="mobile-nav-label">{{ _t('live_food_board') }}</span>
+    </a>
+    {% if session.get('user_id') %}
+      {% if session.get('role') == 'donor' %}
+        <a href="{{ url_for('donor_dashboard') }}" class="mobile-nav-item {% if '/donor' in request.path %}active{% endif %}">
+          <span class="mobile-nav-icon">📦</span>
+          <span class="mobile-nav-label">{{ _t('donor_dashboard') }}</span>
+        </a>
+      {% elif session.get('role') == 'receiver' %}
+        <a href="{{ url_for('receiver_dashboard') }}" class="mobile-nav-item {% if '/receiver' in request.path %}active{% endif %}">
+          <span class="mobile-nav-icon">🤝</span>
+          <span class="mobile-nav-label">{{ _t('receiver_dashboard') }}</span>
+        </a>
+      {% elif session.get('role') in ['volunteer', 'driver'] %}
+        <a href="{{ url_for('driver_dashboard') }}" class="mobile-nav-item {% if '/driver' in request.path or '/volunteer' in request.path %}active{% endif %}">
+          <span class="mobile-nav-icon">🚚</span>
+          <span class="mobile-nav-label">{{ _t('driver_dashboard') }}</span>
+        </a>
+      {% elif session.get('role') in ['admin', 'coordinator'] %}
+        <a href="{{ url_for('coordinator_dashboard') }}" class="mobile-nav-item {% if '/coordinator' in request.path or '/admin' in request.path %}active{% endif %}">
+          <span class="mobile-nav-icon">🎯</span>
+          <span class="mobile-nav-label">{{ _t('coordinator_console', default='Coordinator') }}</span>
+        </a>
+      {% endif %}
+      <a href="{{ url_for('organization_profile') }}" class="mobile-nav-item {% if '/profile' in request.path %}active{% endif %}">
+        <span class="mobile-nav-icon">⚙️</span>
+        <span class="mobile-nav-label">{{ _t('profile') }}</span>
+      </a>
+    {% else %}
+      <a href="{{ url_for('post_requirement') }}" class="mobile-nav-item {% if '/request-food' in request.path %}active{% endif %}">
+        <span class="mobile-nav-icon">🤝</span>
+        <span class="mobile-nav-label">{{ _t('find_food') }}</span>
+      </a>
+      <a href="{{ url_for('login') }}" class="mobile-nav-item {% if '/login' in request.path %}active{% endif %}">
+        <span class="mobile-nav-icon">🔑</span>
+        <span class="mobile-nav-label">{{ _t('sign_in') }}</span>
+      </a>
+    {% endif %}
+  </nav>
+
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+  {% block extra_scripts %}{% endblock %}
+</body>
+</html>

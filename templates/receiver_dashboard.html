@@ -1,0 +1,232 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _t('receiver_console') }} - Annam Pagirvom (அன்னம் பகிர்வோம்){% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 2.5rem 1.25rem;">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+    <div>
+      <h1 style="font-size: 1.85rem; font-weight: 800; color: var(--primary-dark);">
+        {{ _t('receiver_console') }}
+      </h1>
+      <p style="color: var(--text-muted); font-size: 0.95rem;">
+        {{ _t('logged_in_as') }}: <strong>{{ current_user.organization_name }}</strong> ({{ current_user.location_area }})
+      </p>
+    </div>
+    <a href="{{ url_for('post_requirement') }}" class="btn btn-accent">
+      {{ _t('post_new_req') }}
+    </a>
+  </div>
+
+  <!-- Safety & Verification Banner -->
+  <div class="safety-banner">
+    <div class="safety-icon">🍲</div>
+    <div>
+      <strong>{{ _t('receiver_protocol_title') }}</strong>
+      {{ _t('receiver_protocol_desc') }}
+    </div>
+  </div>
+
+  <!-- Matching Donations Available for Claiming -->
+  <div style="margin-bottom: 2.5rem;">
+    <h2 style="font-size: 1.35rem; font-weight: 700; color: var(--primary); margin-bottom: 1rem;">
+      ✨ {{ _t('matching_donations_title') }}
+    </h2>
+
+    {% if matched_donations %}
+      <div class="grid-2">
+        {% for item in matched_donations %}
+          <div class="card" style="border-top: 4px solid var(--primary); padding: 0; overflow: hidden;">
+            {% if item.donation.image_filename %}
+              <img src="{{ url_for('static', filename='uploads/' + item.donation.image_filename) }}" alt="{{ item.donation.food_name }}" class="donation-thumbnail">
+            {% else %}
+              <div style="height: 120px; background: var(--primary-subtle); display:flex; align-items:center; justify-content:center; font-size: 2.5rem;">
+                🍲
+              </div>
+            {% endif %}
+
+            <div style="padding: 1.25rem;">
+              <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
+                <span class="match-tag">{{ _t('match_score') }}: {{ item.evaluation.match_score }}%</span>
+                <span style="font-size: 0.8rem; font-weight: 600; color: var(--text-light);">📍 {{ item.donation.location_area }}</span>
+              </div>
+
+              <h3 style="font-size: 1.2rem; font-weight: 700; margin-bottom: 0.25rem; color: var(--primary-dark);">
+                {{ item.donation.food_name }}
+              </h3>
+              <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.5rem;">
+                {{ _t('offered_by') }}: <strong>{{ item.donation.organization_name }}</strong> ({{ item.donation.category }})
+              </div>
+
+              <div style="background-color: var(--primary-subtle); padding: 0.75rem; border-radius: var(--radius-sm); font-size: 0.85rem; margin-bottom: 0.75rem;">
+                <div><strong>{{ _t('active_batches') }}:</strong> {{ item.donation.quantity|int }} {{ item.donation.unit }}</div>
+                <div><strong>{{ _t('needs') }}:</strong> {{ item.requirement.quantity_needed|int }} {{ item.requirement.unit }}</div>
+                <div><strong>{{ _t('safe_deadline') }}:</strong> <span style="color: #b45309; font-weight: 600;">{{ item.donation.safe_use_deadline }}</span></div>
+                {% if item.donation.latitude and item.donation.longitude %}
+                  <div style="margin-top: 4px; font-size: 0.75rem; color: var(--primary);">
+                    📍 GPS: {{ "%.4f"|format(item.donation.latitude) }}, {{ "%.4f"|format(item.donation.longitude) }}
+                    <a href="https://www.openstreetmap.org/?mlat={{ item.donation.latitude }}&mlon={{ item.donation.longitude }}#map=16/{{ item.donation.latitude }}/{{ item.donation.longitude }}" target="_blank" style="text-decoration: underline;">
+                      ({{ _t('view_on_map') }})
+                    </a>
+                  </div>
+                {% endif %}
+                <div style="margin-top: 4px; color: #065f46;"><strong>{{ _t('why_matches') }}</strong> {{ item.evaluation.explanation_string }}</div>
+              </div>
+
+              <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+                <span style="font-size: 0.8rem; color: var(--text-light); max-width: 60%;">
+                  {{ _t('pickup_address') }} {{ item.donation.pickup_address }}
+                </span>
+                <form method="POST" action="{{ url_for('claim_donation', donation_id=item.donation.id) }}">
+                  <input type="hidden" name="requirement_id" value="{{ item.requirement.id }}">
+                  <input type="hidden" name="matched_quantity" value="{{ item.evaluation.matched_quantity }}">
+                  <input type="hidden" name="explanation" value="{{ item.evaluation.explanation_string }}">
+                  <button type="submit" class="btn btn-sm btn-accent">
+                    {{ _t('claim_request_btn') }}
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div style="padding: 1.25rem; background: #ffffff; border: 1px dashed var(--border-color); border-radius: var(--radius-md); font-size: 0.9rem; color: var(--text-muted);">
+        {{ _t('no_matching_donations') }}
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- Handover Status Tracker -->
+  <div style="margin-bottom: 2.5rem;">
+    <h2 style="font-size: 1.35rem; font-weight: 700; color: var(--primary-dark); margin-bottom: 1rem;">
+      🚚 {{ _t('in_progress_handovers') }}
+    </h2>
+
+    <div class="table-responsive">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>{{ _t('id') }}</th>
+            <th>{{ _t('item_category') }}</th>
+            <th>{{ _t('portions') }}</th>
+            <th>{{ _t('donor_org') }}</th>
+            <th>{{ _t('status') }}</th>
+            <th>{{ _t('assigned_volunteer') }}</th>
+            <th>{{ _t('handover_receipt') }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if active_handovers %}
+            {% for h in active_handovers %}
+              <tr>
+                <td><strong>#{{ h.donation_id }}</strong></td>
+                <td>
+                  <strong>{{ h.food_name }}</strong>
+                  {% if h.image_filename %}
+                    <br><img src="{{ url_for('static', filename='uploads/' + h.image_filename) }}" alt="Thumbnail" style="width: 40px; height: 30px; object-fit: cover; border-radius: 4px; margin-top: 3px;">
+                  {% endif %}
+                </td>
+                <td>{{ h.matched_quantity|int }} portions</td>
+                <td>
+                  <strong>{{ h.donor_org }}</strong>
+                  {% if h.donor_phone_authorized and h.donor_phone %}
+                    <br>
+                    <a href="tel:{{ h.donor_phone }}" class="btn btn-sm btn-outline" style="font-size: 0.75rem; padding: 2px 8px; color: #16a34a; border-color: #86efac; text-decoration: none; margin-top: 3px; display: inline-flex; align-items: center; gap: 4px; font-weight: 600;">
+                      📞 {{ _t('call_donor') }} ({{ h.donor_phone }})
+                    </a>
+                  {% else %}
+                    <br><span style="font-size: 0.72rem; color: #64748b;">🔒 {{ h.donor_auth_note }}</span>
+                  {% endif %}
+                </td>
+                <td>
+                  <span class="status-pill status-{{ h.donation_status }}">{{ _t('status_' + h.donation_status, default=h.donation_status) }}</span>
+                </td>
+                <td>
+                  {% if h.volunteer_name %}
+                    <strong>{{ h.volunteer_name }}</strong>
+                    {% if h.volunteer_phone %}
+                      <br>
+                      <a href="tel:{{ h.volunteer_phone }}" class="btn btn-sm btn-outline" style="font-size: 0.75rem; padding: 2px 8px; color: #0284c7; border-color: #7dd3fc; text-decoration: none; margin-top: 3px; display: inline-flex; align-items: center; gap: 4px; font-weight: 600;">
+                        📞 {{ _t('call_driver') }} ({{ h.volunteer_phone }})
+                      </a>
+                    {% endif %}
+                  {% else %}
+                    <span style="font-size: 0.8rem; color: var(--text-light);">{{ _t('awaiting_volunteer') }}</span>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if h.donation_status == 'collected' %}
+                    <form method="POST" action="{{ url_for('confirm_receiver_handover', match_id=h.match_id) }}">
+                      <input type="text" name="receiver_signature_name" placeholder="{{ _t('receiver_rep_name') }}" required style="font-size: 0.8rem; padding: 4px; width: 130px;">
+                      <button type="submit" class="btn btn-sm btn-primary" style="margin-top: 4px;">
+                        {{ _t('confirm_delivery_received') }}
+                      </button>
+                    </form>
+                  {% elif h.donation_status == 'delivered' %}
+                    <span style="color: #16a34a; font-weight: 700; font-size: 0.85rem;">{{ _t('handover_completed') }}</span>
+                  {% else %}
+                    <span style="font-size: 0.8rem; color: var(--text-muted);">{{ _t('awaiting_collection') }}</span>
+                  {% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+          {% else %}
+            <tr>
+              <td colspan="7" style="text-align: center; padding: 1.5rem; color: var(--text-muted);">
+                {{ _t('no_matching_donations') }}
+              </td>
+            </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Your Active Requirements Table -->
+  <div>
+    <h2 style="font-size: 1.35rem; font-weight: 700; color: var(--primary-dark); margin-bottom: 1rem;">
+      📝 {{ _t('your_requirements') }}
+    </h2>
+
+    <div class="table-responsive">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>{{ _t('id') }}</th>
+            <th>{{ _t('category') }}</th>
+            <th>{{ _t('quantity_needed') }}</th>
+            <th>{{ _t('serving_capacity') }}</th>
+            <th>{{ _t('required_by_time') }}</th>
+            <th>{{ _t('transport_preference') }}</th>
+            <th>{{ _t('status') }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if requirements %}
+            {% for r in requirements %}
+              <tr>
+                <td><strong>#{{ r.id }}</strong></td>
+                <td>{{ r.preferred_category }}</td>
+                <td>{{ r.quantity_needed|int }} {{ r.unit }}</td>
+                <td>{{ r.serving_capacity|int }} individuals</td>
+                <td>{{ r.required_by_time }}</td>
+                <td>{{ r.transport_arranged_by }}</td>
+                <td>
+                  <span class="status-pill status-{{ r.status }}">{{ _t('status_' + r.status, default=r.status) }}</span>
+                </td>
+              </tr>
+            {% endfor %}
+          {% else %}
+            <tr>
+              <td colspan="7" style="text-align: center; padding: 1.5rem; color: var(--text-muted);">
+                {{ _t('no_requirements') }}
+              </td>
+            </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
